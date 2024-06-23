@@ -3,7 +3,7 @@ import { asJsonSchema } from '../lib/util/typings';
 
 export const userWithPasswordSchema = asJsonSchema({
   type: 'object',
-  description: 'User schema',
+  description: 'User',
   additionalProperties: false,
   required: [
     'id',
@@ -107,7 +107,7 @@ export const userWithPasswordSchema = asJsonSchema({
 
 export const userWithoutPasswordSchema = asJsonSchema({
   type: 'object',
-  description: 'User schema',
+  description: 'User without password',
   additionalProperties: false,
   required: [
     'id',
@@ -196,6 +196,7 @@ export const userWithoutPasswordSchema = asJsonSchema({
       properties: {
         displayName: {
           type: 'string',
+          nullable: true,
           examples: ['John Doe'],
         },
       },
@@ -205,17 +206,30 @@ export const userWithoutPasswordSchema = asJsonSchema({
 
 export const userResponseSchema = asJsonSchema({
   type: 'object',
-  description: 'User return type schema',
+  description: 'User',
   additionalProperties: false,
   required: ['user'],
   properties: {
-    user: userWithoutPasswordSchema,
+    user: { ...userWithoutPasswordSchema, nullable: true },
+  },
+} as const);
+
+export const userTokenResponseSchema = asJsonSchema({
+  type: 'object',
+  description: 'User session token',
+  additionalProperties: false,
+  required: ['token'],
+  properties: {
+    token: {
+      type: 'string',
+      examples: ['<jwt>'],
+    },
   },
 } as const);
 
 export const userRegisterSchema = asJsonSchema({
   type: 'object',
-  description: 'User register schema',
+  description: 'User register',
   additionalProperties: false,
   required: ['username', 'password', 'email'],
   properties: {
@@ -241,4 +255,32 @@ export const userRegisterSchema = asJsonSchema({
       examples: [UserRole.USER],
     },
   },
+} as const);
+
+export const userLoginSchema = asJsonSchema({
+  type: 'object',
+  description: 'User login',
+  additionalProperties: false,
+  required: ['usernameOrEmail', 'password'],
+  properties: {
+    usernameOrEmail: {
+      type: 'string',
+      minLength: 1,
+      examples: ['user1'],
+    },
+    password: {
+      type: 'string',
+      format: 'password',
+      minLength: 1,
+      examples: ['password1'],
+    },
+  },
+} as const);
+
+export const userUpdateInformationSchema = asJsonSchema({
+  type: 'object',
+  description: 'User login',
+  additionalProperties: false,
+  required: [],
+  properties: {},
 } as const);

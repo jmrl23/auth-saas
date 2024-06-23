@@ -82,7 +82,7 @@ export default class UserService {
       return cachedUser;
     }
 
-    const user: User | null = await prismaClient.user.findUnique({
+    const user: User | null = await prismaClient.user.findFirst({
       where: {
         id,
       },
@@ -110,10 +110,20 @@ export default class UserService {
     return user;
   }
 
+  public async getUserByToken(token: string): Promise<User | null> {
+    const key = `session:${token}`;
+    const session = await this.cacheService.get<{ id: string }>(key);
+    if (!session) return null;
+    const user = await this.getUserById(session.id);
+    return user;
+  }
+
   public async loginUser(
     usernameOrEmail: string,
     password: string,
   ): Promise<string> {
+    usernameOrEmail = usernameOrEmail.toLowerCase();
+
     const user = await prismaClient.user.findFirst({
       where: {
         OR: [
@@ -133,10 +143,7 @@ export default class UserService {
 
     if (!user) throw new Unauthorized('User not exist');
 
-    if (
-      this.hashPassword(user.password, user.salt) !==
-      this.hashPassword(password, user.salt)
-    ) {
+    if (user.password !== this.hashPassword(password, user.salt)) {
       throw new Unauthorized('Password is incorrect');
     }
 
@@ -154,10 +161,7 @@ export default class UserService {
     // to ensure that `password` and `hash` properties are existing
     const _user = (await this.getUserById(user.id, true))!;
 
-    if (
-      this.hashPassword(_user.password!, _user.salt!) !==
-      this.hashPassword(currentPassword, _user.salt!)
-    ) {
+    if (user.password !== this.hashPassword(currentPassword, _user.salt!)) {
       throw new Unauthorized('Password is incorrect');
     }
 

@@ -8,10 +8,15 @@ import swaggerPlugin from './swagger.plugin';
 import routesPlugin from './routes.plugin';
 import middlewaresPlugin from './middlewares.plugin';
 import servicesPlugin from './services.plugin';
+import userPlugin from './user.plugin';
 
 export default fastifyPlugin(
   async function setupPlugin(app) {
     await app.register(servicesPlugin, {
+      prefix: '/',
+    });
+
+    await app.register(userPlugin, {
       prefix: '/',
     });
 
