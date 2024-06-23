@@ -7,7 +7,7 @@ export default function userAuthorization(...roles: UserRole[]) {
     if (!request.user) throw new Unauthorized('No session');
     if (!roles.includes(request.user.role)) {
       throw new Unauthorized(
-        `Role must be one of the following: ${roles.join(', ')}`,
+        `Role must be one of the following: [${roles.join(', ')}]`,
       );
     }
   };
