@@ -152,7 +152,7 @@ export default class UserService {
     }
 
     const _user = await this.getUserById(user.id);
-    const token = await this.createUserSession(_user!);
+    const token = await this.createUserSession(_user!, '30d');
 
     return token;
   }
@@ -270,17 +270,12 @@ export default class UserService {
 
   private async createUserSession(
     user: User,
-    expiresIn?: string,
+    expiresIn: string,
   ): Promise<string> {
     const token = jwt.sign({ id: user.id }, JWT_SECRET, {
       expiresIn,
     });
-
-    await this.cacheService.set(
-      `session:${token}`,
-      user.id,
-      typeof expiresIn === 'string' ? ms(expiresIn) : undefined,
-    );
+    await this.cacheService.set(`session:${token}`, user.id, ms(expiresIn));
 
     return token;
   }
