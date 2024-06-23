@@ -99,6 +99,8 @@ export default class UserService {
       },
     });
 
+    if (!user) return null;
+
     const expires = ms('5m');
     await this.cacheService.set(cacheKey, user, expires);
 
@@ -112,9 +114,9 @@ export default class UserService {
 
   public async getUserByToken(token: string): Promise<User | null> {
     const key = `session:${token}`;
-    const session = await this.cacheService.get<{ id: string }>(key);
+    const session = await this.cacheService.get<string>(key);
     if (!session) return null;
-    const user = await this.getUserById(session.id);
+    const user = await this.getUserById(session);
     return user;
   }
 
