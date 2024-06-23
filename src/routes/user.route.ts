@@ -6,6 +6,7 @@ import {
   userResponseSchema,
   userTokenResponseSchema,
   userUpdateInformationSchema,
+  userUpdatePasswordSchema,
 } from '../schemas/user.schema';
 import { errorResponseSchema } from '../schemas/error.schema';
 import userAuthorization from '../handlers/user-authorization';
@@ -93,7 +94,35 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update-information',
+      url: '/update/password',
+      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      schema: {
+        description: 'Update user password',
+        tags: ['user'],
+        body: userUpdatePasswordSchema,
+        response: {
+          200: userResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+      async handler(request) {
+        const { currentPassword, newPassword } = request.body as FromSchema<
+          typeof userUpdatePasswordSchema
+        >;
+        const user = await this.userService.updateUserPassword(
+          request.user!,
+          currentPassword,
+          newPassword,
+        );
+        return {
+          user,
+        };
+      },
+    })
+
+    .route({
+      method: 'PATCH',
+      url: '/update/information',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Update user information',

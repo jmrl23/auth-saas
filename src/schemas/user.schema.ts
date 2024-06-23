@@ -277,9 +277,30 @@ export const userLoginSchema = asJsonSchema({
   },
 } as const);
 
+export const userUpdatePasswordSchema = asJsonSchema({
+  type: 'object',
+  description: 'Update user password',
+  additionalProperties: false,
+  required: ['currentPassword', 'newPassword'],
+  properties: {
+    currentPassword: {
+      type: 'string',
+      format: 'password',
+      minLength: 6,
+      examples: ['password1'],
+    },
+    newPassword: {
+      type: 'string',
+      format: 'password',
+      minLength: 6,
+      examples: ['password01'],
+    },
+  },
+} as const);
+
 export const userUpdateInformationSchema = asJsonSchema({
   type: 'object',
-  description: 'User login',
+  description: 'Update user information',
   additionalProperties: false,
   required: [],
   properties: {
