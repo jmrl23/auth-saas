@@ -282,5 +282,11 @@ export const userUpdateInformationSchema = asJsonSchema({
   description: 'User login',
   additionalProperties: false,
   required: [],
-  properties: {},
+  properties: {
+    displayName: {
+      type: 'string',
+      minLength: 1,
+      examples: ['Johnny Doe'],
+    },
+  },
 } as const);

@@ -152,7 +152,7 @@ export default class UserService {
     }
 
     const _user = await this.getUserById(user.id);
-    const token = await this.createUserSession(_user!, '7d');
+    const token = await this.createUserSession(_user!);
 
     return token;
   }
@@ -179,7 +179,6 @@ export default class UserService {
       },
     });
 
-    // revalidate user cache
     const updatedUser = await this.getUserById(user.id, { revalidate: true });
     return updatedUser!;
   }
@@ -262,15 +261,26 @@ export default class UserService {
     return updatedUser!;
   }
 
+  public async logoutByToken(token: string): Promise<User | null> {
+    const user = await this.getUserByToken(token);
+    const key = `session:${token}`;
+    await this.cacheService.del(key);
+    return user;
+  }
+
   private async createUserSession(
     user: User,
-    expiresIn: string,
+    expiresIn?: string,
   ): Promise<string> {
     const token = jwt.sign({ id: user.id }, JWT_SECRET, {
       expiresIn,
     });
 
-    await this.cacheService.set(`session:${token}`, user.id, ms(expiresIn));
+    await this.cacheService.set(
+      `session:${token}`,
+      user.id,
+      typeof expiresIn === 'string' ? ms(expiresIn) : undefined,
+    );
 
     return token;
   }

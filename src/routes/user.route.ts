@@ -5,6 +5,7 @@ import {
   userRegisterSchema,
   userResponseSchema,
   userTokenResponseSchema,
+  userUpdateInformationSchema,
 } from '../schemas/user.schema';
 import { errorResponseSchema } from '../schemas/error.schema';
 import userAuthorization from '../handlers/user-authorization';
@@ -18,6 +19,7 @@ export default asRoute(async function userRoute(app) {
       method: 'POST',
       url: '/register',
       schema: {
+        description: 'Register user',
         security: [],
         tags: ['user'],
         body: userRegisterSchema,
@@ -46,6 +48,7 @@ export default asRoute(async function userRoute(app) {
       method: 'POST',
       url: '/login',
       schema: {
+        description: 'Login user',
         security: [],
         tags: ['user'],
         body: userLoginSchema,
@@ -73,8 +76,8 @@ export default asRoute(async function userRoute(app) {
       url: '/session',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
-        tags: ['user'],
         description: 'Get current session',
+        tags: ['user'],
         response: {
           200: userResponseSchema,
           default: errorResponseSchema,
@@ -82,6 +85,54 @@ export default asRoute(async function userRoute(app) {
       },
       async handler(request) {
         const user = request.user ?? null;
+        return {
+          user,
+        };
+      },
+    })
+
+    .route({
+      method: 'PATCH',
+      url: '/update-information',
+      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      schema: {
+        description: 'Update user information',
+        tags: ['user'],
+        body: userUpdateInformationSchema,
+        response: {
+          200: userResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+      async handler(request) {
+        const information = request.body as FromSchema<
+          typeof userUpdateInformationSchema
+        >;
+        const user = await this.userService.updateUserInformation(
+          request.user!,
+          information,
+        );
+        return {
+          user,
+        };
+      },
+    })
+
+    .route({
+      method: 'DELETE',
+      url: '/logout',
+      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      schema: {
+        tags: ['user'],
+        description: 'Logout',
+        response: {
+          200: userResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+      async handler(request) {
+        const [, token] = request.headers.authorization?.split(' ') ?? [];
+        const user = await this.userService.logoutByToken(token);
         return {
           user,
         };
