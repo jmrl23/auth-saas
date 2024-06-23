@@ -1,5 +1,8 @@
+import { UserRole } from '@prisma/client';
 import { FromSchema } from 'json-schema-to-ts';
+import userAuthorization from '../handlers/user-authorization';
 import { asRoute } from '../lib/util/typings';
+import { errorResponseSchema } from '../schemas/error.schema';
 import {
   userLoginSchema,
   userRegisterSchema,
@@ -8,9 +11,6 @@ import {
   userUpdateInformationSchema,
   userUpdatePasswordSchema,
 } from '../schemas/user.schema';
-import { errorResponseSchema } from '../schemas/error.schema';
-import userAuthorization from '../handlers/user-authorization';
-import { UserRole } from '@prisma/client';
 
 export const prefix = '/user';
 
@@ -74,11 +74,11 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'GET',
-      url: '/session',
+      url: '/session/get',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Get current session',
-        tags: ['user'],
+        tags: ['user', 'session'],
         response: {
           200: userResponseSchema,
           default: errorResponseSchema,
@@ -94,11 +94,11 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update/password',
+      url: '/password/update',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Update user password',
-        tags: ['user'],
+        tags: ['user', 'update'],
         body: userUpdatePasswordSchema,
         response: {
           200: userResponseSchema,
@@ -122,11 +122,11 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update/information',
+      url: '/information/update',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Update user information',
-        tags: ['user'],
+        tags: ['user', 'update'],
         body: userUpdateInformationSchema,
         response: {
           200: userResponseSchema,
@@ -149,10 +149,10 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'DELETE',
-      url: '/logout',
+      url: '/session/delete',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
-        tags: ['user'],
+        tags: ['user', 'session'],
         description: 'Logout',
         response: {
           200: userResponseSchema,
