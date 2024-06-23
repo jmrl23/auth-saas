@@ -17,13 +17,13 @@ export declare global {
     salt?: string;
   }
 
-  export interface ApiApp
-    extends Prisma.ApiAppGetPayload<{
+  export interface ApiApplication
+    extends Prisma.ApiApplicationGetPayload<{
       select: {
         id: true;
         createdAt: true;
         updatedAt: true;
-        author: true;
+        authorId: true;
         name: true;
       };
     }> {}

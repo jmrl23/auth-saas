@@ -1,8 +1,9 @@
 import { UserRole } from '@prisma/client';
-import { FromSchema } from 'json-schema-to-ts';
+import type { FromSchema } from 'json-schema-to-ts';
 import userAuthorization from '../handlers/user-authorization';
 import { asRoute } from '../lib/util/typings';
 import { errorResponseSchema } from '../schemas/error.schema';
+import { Unauthorized } from 'http-errors';
 import {
   userLoginSchema,
   userRegisterSchema,
@@ -22,7 +23,7 @@ export default asRoute(async function userRoute(app) {
       schema: {
         description: 'Register user',
         security: [],
-        tags: ['user'],
+        tags: ['user', 'create'],
         body: userRegisterSchema,
         response: {
           200: userResponseSchema,
@@ -33,6 +34,11 @@ export default asRoute(async function userRoute(app) {
         const { username, password, email, role } = request.body as FromSchema<
           typeof userRegisterSchema
         >;
+        if (request.user?.role !== UserRole.ADMIN && role === UserRole.ADMIN) {
+          throw new Unauthorized(
+            `Not authorized to create an ${UserRole.ADMIN} account`,
+          );
+        }
         const user = await this.userService.createUser(
           username,
           password,
@@ -51,7 +57,7 @@ export default asRoute(async function userRoute(app) {
       schema: {
         description: 'Login user',
         security: [],
-        tags: ['user'],
+        tags: ['user', 'auth'],
         body: userLoginSchema,
         response: {
           200: userTokenResponseSchema,
@@ -78,7 +84,7 @@ export default asRoute(async function userRoute(app) {
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Get current session',
-        tags: ['user', 'session'],
+        tags: ['user', 'info'],
         response: {
           200: userResponseSchema,
           default: errorResponseSchema,
@@ -152,7 +158,7 @@ export default asRoute(async function userRoute(app) {
       url: '/session/delete',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
-        tags: ['user', 'session'],
+        tags: ['user', 'delete'],
         description: 'Logout',
         response: {
           200: userResponseSchema,

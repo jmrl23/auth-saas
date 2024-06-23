@@ -8,16 +8,16 @@ import CacheService from './cache.service';
 export default class ApiService {
   constructor(private readonly cacheService: CacheService) {}
 
-  public async createApp(user: User, name: string): Promise<ApiApp> {
-    const count = await prismaClient.apiApp.count({
+  public async createApp(user: User, name: string): Promise<ApiApplication> {
+    const count = await prismaClient.apiApplication.count({
       where: {
         name,
       },
     });
 
-    if (count > 0) throw new Conflict('App already exists');
+    if (count > 0) throw new Conflict('API application already created');
 
-    const app = await prismaClient.apiApp.create({
+    const app = await prismaClient.apiApplication.create({
       data: {
         name,
         authorId: user.id,
@@ -31,16 +31,16 @@ export default class ApiService {
   public async getAppById(
     id: string,
     options: Partial<{ revalidate: boolean }> = {},
-  ): Promise<ApiApp | null> {
-    const cacheKey = `apiApp:${id}`;
+  ): Promise<ApiApplication | null> {
+    const cacheKey = `application:${id}`;
 
     if (options.revalidate === true) await this.cacheService.del(cacheKey);
 
-    const cachedApp = await this.cacheService.get<ApiApp>(cacheKey);
+    const cachedApp = await this.cacheService.get<ApiApplication>(cacheKey);
 
     if (cachedApp) return cachedApp;
 
-    const app = await prismaClient.apiApp.findUnique({
+    const app = await prismaClient.apiApplication.findUnique({
       where: {
         id,
       },
@@ -48,7 +48,7 @@ export default class ApiService {
         id: true,
         createdAt: true,
         updatedAt: true,
-        author: true,
+        authorId: true,
         name: true,
       },
     });
@@ -57,17 +57,81 @@ export default class ApiService {
     return app;
   }
 
-  public async deleteAppById(id: string): Promise<ApiApp> {
+  public async getAppList(
+    payload: Partial<{
+      revalidate: boolean;
+      createdAtFrom: string;
+      createdAtTo: string;
+      updatedAtFrom: string;
+      updatedAtTo: string;
+      name: string;
+      authorId: string;
+      skip: number;
+      take: number;
+      order: 'asc' | 'desc';
+    }>,
+  ): Promise<ApiApplication[]> {
+    const { revalidate, ...p } = payload;
+    const cacheKey = `application:list:[${[
+      p.createdAtFrom,
+      p.createdAtTo,
+      p.updatedAtFrom,
+      p.updatedAtTo,
+      p.name,
+      p.authorId,
+      p.skip,
+      p.take,
+      p.order,
+    ].join(',')}]`;
+    if (revalidate === true) await this.cacheService.del(cacheKey);
+    const cachedList = await this.cacheService.get<ApiApplication[]>(cacheKey);
+    if (cachedList) return cachedList;
+
+    const appList = await prismaClient.apiApplication.findMany({
+      where: {
+        createdAt: {
+          gte: p.createdAtFrom ? moment(p.createdAtFrom).toDate() : undefined,
+          lte: p.createdAtTo ? moment(p.createdAtTo).toDate() : undefined,
+        },
+        updatedAt: {
+          gte: p.updatedAtFrom ? moment(p.updatedAtFrom).toDate() : undefined,
+          lte: p.updatedAtTo ? moment(p.updatedAtTo).toDate() : undefined,
+        },
+        name: {
+          startsWith: p.name,
+        },
+        authorId: p.authorId,
+      },
+      skip: p.skip,
+      take: p.take,
+      orderBy: {
+        createdAt: p.order,
+      },
+    });
+
+    const parsedAppList = (
+      await Promise.all(
+        appList.map((app) => this.getAppById(app.id, { revalidate })),
+      )
+    ).filter((app) => app !== null);
+
+    await this.cacheService.set(cacheKey, parsedAppList, ms('5m'));
+
+    return parsedAppList;
+  }
+
+  public async deleteAppById(id: string): Promise<ApiApplication> {
     const app = await this.getAppById(id);
 
-    if (!app) throw new NotFound('App not exists');
+    if (!app) throw new NotFound('API application not found');
 
-    await prismaClient.apiApp.delete({
+    await prismaClient.apiApplication.delete({
       where: {
         id,
       },
     });
 
+    await this.getAppById(id, { revalidate: true });
     return app;
   }
 
@@ -116,7 +180,7 @@ export default class ApiService {
     return parsedApiKey;
   }
 
-  public async createApiKey(
+  public async createKey(
     user: User,
     options: { expiresDays?: number; apps: string[] },
   ): Promise<ApiKey> {
@@ -145,7 +209,7 @@ export default class ApiService {
     enable: boolean,
   ): Promise<ApiKey> {
     const apiKey = await this.getKeyById(id);
-    if (!apiKey) throw new NotFound('API key not exists');
+    if (!apiKey) throw new NotFound('API key not found');
     if (id !== user.id) throw new Unauthorized('API key not owned');
 
     const _apiKey = await prismaClient.apiKey.update({
@@ -167,7 +231,7 @@ export default class ApiService {
 
   public async deleteKeyById(user: User, id: string): Promise<ApiKey> {
     const apiKey = await this.getKeyById(id);
-    if (!apiKey) throw new NotFound('Api key not exists');
+    if (!apiKey) throw new NotFound('API key not found');
     if (id !== user.id) throw new Unauthorized('API key not owned');
 
     await prismaClient.apiKey.delete({
@@ -177,12 +241,13 @@ export default class ApiService {
       },
     });
 
+    await this.getKeyById(id, { revalidate: true });
     return apiKey;
   }
 
   public async getStatus(
     key: ApiKey | null,
-    app: ApiApp | null,
+    app: ApiApplication | null,
   ): Promise<{ active: boolean; message?: string }> {
     if (!key) {
       return {
