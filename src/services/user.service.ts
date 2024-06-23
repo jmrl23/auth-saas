@@ -62,19 +62,21 @@ export default class UserService {
 
   public async getUserById(
     id: string,
-    withPassword: boolean = false,
-    revalidate: boolean = false,
+    options: Partial<{
+      revalidate: boolean;
+      includePassword: boolean;
+    }> = {},
   ): Promise<User | null> {
     const cacheKey = `user:${id}`;
 
-    if (revalidate) await this.cacheService.del(cacheKey);
+    if (options.revalidate === true) await this.cacheService.del(cacheKey);
 
     const cachedUser = await this.cacheService.get<User>(cacheKey);
 
     if (cachedUser) {
       const user = { ...cachedUser };
 
-      if (!withPassword) {
+      if (!options.includePassword) {
         delete user.password;
         delete user.salt;
       }
@@ -104,7 +106,7 @@ export default class UserService {
     const expires = ms('5m');
     await this.cacheService.set(cacheKey, user, expires);
 
-    if (user && !withPassword) {
+    if (!options.includePassword) {
       delete user.password;
       delete user.salt;
     }
@@ -160,8 +162,7 @@ export default class UserService {
     currentPassword: string,
     newPassword: string,
   ): Promise<User> {
-    // to ensure that `password` and `hash` properties are existing
-    const _user = (await this.getUserById(user.id, true))!;
+    const _user = (await this.getUserById(user.id, { includePassword: true }))!;
 
     if (user.password !== this.hashPassword(currentPassword, _user.salt!)) {
       throw new Unauthorized('Password is incorrect');
@@ -179,7 +180,7 @@ export default class UserService {
     });
 
     // revalidate user cache
-    const updatedUser = await this.getUserById(user.id, false, true);
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
     return updatedUser!;
   }
 
@@ -202,7 +203,7 @@ export default class UserService {
       },
     });
 
-    const updatedUser = await this.getUserById(user.id, false, true);
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
     return updatedUser!;
   }
 
@@ -229,7 +230,7 @@ export default class UserService {
       },
     });
 
-    const updatedUser = await this.getUserById(user.id, false, true);
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
     return updatedUser!;
   }
 
@@ -257,7 +258,7 @@ export default class UserService {
       },
     });
 
-    const updatedUser = await this.getUserById(user.id, false, true);
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
     return updatedUser!;
   }
 
