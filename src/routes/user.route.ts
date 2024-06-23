@@ -1,9 +1,9 @@
 import { UserRole } from '@prisma/client';
+import { Unauthorized } from 'http-errors';
 import type { FromSchema } from 'json-schema-to-ts';
 import userAuthorization from '../handlers/user-authorization';
 import { asRoute } from '../lib/util/typings';
 import { errorResponseSchema } from '../schemas/error.schema';
-import { Unauthorized } from 'http-errors';
 import {
   userLoginSchema,
   userRegisterSchema,

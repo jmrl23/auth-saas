@@ -34,7 +34,7 @@ export declare global {
         id: true;
         createdAt: true;
         updatedAt: true;
-        user: true;
+        userId: true;
         apiKey: true;
         expires: true;
         enable: true;

@@ -110,13 +110,10 @@ export default class ApiService {
     });
 
     const parsedAppList = (
-      await Promise.all(
-        appList.map((app) => this.getAppById(app.id, { revalidate })),
-      )
+      await Promise.all(appList.map((app) => this.getAppById(app.id)))
     ).filter((app) => app !== null);
 
     await this.cacheService.set(cacheKey, parsedAppList, ms('5m'));
-
     return parsedAppList;
   }
 
@@ -156,7 +153,7 @@ export default class ApiService {
         id: true,
         createdAt: true,
         updatedAt: true,
-        user: true,
+        userId: true,
         apiKey: true,
         apps: true,
         expires: true,
@@ -176,7 +173,6 @@ export default class ApiService {
     const parsedApiKey: ApiKey | null = !apiKey ? null : { ...apiKey, apps };
 
     await this.cacheService.set(cacheKey, parsedApiKey, ms('5m'));
-
     return parsedApiKey;
   }
 
@@ -203,10 +199,74 @@ export default class ApiService {
     return apiKey!;
   }
 
+  public async getKeyList(
+    user: User,
+    payload: Partial<{
+      revalidate: boolean;
+      createdAtFrom: string;
+      createdAtTo: string;
+      updatedAtFrom: string;
+      updatedAtTo: string;
+      expired: boolean;
+      enable: boolean;
+      skip: number;
+      take: number;
+      order: 'asc' | 'desc';
+    }>,
+  ): Promise<ApiKey[]> {
+    const { revalidate, ...p } = payload;
+    const cacheKey = `application:list:[${[
+      user.id,
+      p.createdAtFrom,
+      p.createdAtTo,
+      p.updatedAtFrom,
+      p.updatedAtTo,
+      p.expired,
+      p.enable,
+      p.skip,
+      p.take,
+      p.order,
+    ].join(',')}]`;
+    if (revalidate === true) await this.cacheService.del(cacheKey);
+    const cachedList = await this.cacheService.get<ApiKey[]>(cacheKey);
+    if (cachedList) return cachedList;
+
+    const keyList = await prismaClient.apiKey.findMany({
+      where: {
+        createdAt: {
+          gte: p.createdAtFrom ? moment(p.createdAtFrom).toDate() : undefined,
+          lte: p.createdAtTo ? moment(p.createdAtTo).toDate() : undefined,
+        },
+        updatedAt: {
+          gte: p.updatedAtFrom ? moment(p.updatedAtFrom).toDate() : undefined,
+          lte: p.updatedAtTo ? moment(p.updatedAtTo).toDate() : undefined,
+        },
+        enable: p.enable,
+        expires: !p.expired
+          ? undefined
+          : {
+              lte: new Date(),
+            },
+      },
+      skip: p.skip,
+      take: p.take,
+      orderBy: {
+        createdAt: p.order,
+      },
+    });
+
+    const parsedKeyList = (
+      await Promise.all(keyList.map((key) => this.getKeyById(key.id)))
+    ).filter((key) => key !== null);
+
+    await this.cacheService.set(cacheKey, parsedKeyList, ms('5m'));
+    return parsedKeyList;
+  }
+
   public async toggleKeyById(
     user: User,
     id: string,
-    enable: boolean,
+    enable?: boolean,
   ): Promise<ApiKey> {
     const apiKey = await this.getKeyById(id);
     if (!apiKey) throw new NotFound('API key not found');
@@ -218,7 +278,7 @@ export default class ApiService {
         userId: user.id,
       },
       data: {
-        enable,
+        enable: typeof enable !== 'boolean' ? !apiKey.enable : enable,
       },
     });
 
@@ -248,37 +308,65 @@ export default class ApiService {
   public async getStatus(
     key: ApiKey | null,
     app: ApiApplication | null,
+    revalidate: boolean = false,
   ): Promise<{ active: boolean; message?: string }> {
+    const cacheKey = `key:status:[${[key?.id, app?.id].join(',')}]`;
+    if (revalidate === true) await this.cacheService.del(cacheKey);
+    const cachedStatus = await this.cacheService.get<{
+      active: boolean;
+      message?: string;
+    }>(cacheKey);
+    if (cachedStatus) return cachedStatus;
+
     if (!key) {
-      return {
-        active: false,
-        message: 'Invalid key',
-      };
+      await this.cacheService.set(
+        cacheKey,
+        {
+          active: false,
+          message: 'Invalid key',
+        },
+        ms('5m'),
+      );
+      return await this.getStatus(key, app, false);
     }
 
     if (!key.enable) {
-      return {
-        active: false,
-        message: 'Disabled key',
-      };
+      await this.cacheService.set(
+        cacheKey,
+        {
+          active: false,
+          message: 'Disabled key',
+        },
+        ms('5m'),
+      );
+      return await this.getStatus(key, app, false);
     }
 
-    if (key.expires && key.expires > new Date()) {
-      return {
-        active: false,
-        message: 'Expired key',
-      };
+    if (key.expires && key.expires >= new Date()) {
+      await this.cacheService.set(
+        cacheKey,
+        {
+          active: false,
+          message: 'Expired key',
+        },
+        ms('5m'),
+      );
+      return await this.getStatus(key, app, false);
     }
 
     if (!key.apps.find((_app) => _app.id === app?.id)) {
-      return {
-        active: false,
-        message: 'No access',
-      };
+      await this.cacheService.set(
+        cacheKey,
+        {
+          active: false,
+          message: 'No access',
+        },
+        ms('5m'),
+      );
+      return await this.getStatus(key, app, false);
     }
 
-    return {
-      active: true,
-    };
+    await this.cacheService.set(cacheKey, { active: true }, ms('5m'));
+    return await this.getStatus(key, app, false);
   }
 }
