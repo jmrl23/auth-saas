@@ -101,12 +101,10 @@ export default class UserService {
       },
     });
 
-    if (!user) return null;
-
     const expires = ms('5m');
     await this.cacheService.set(cacheKey, user, expires);
 
-    if (!options.includePassword) {
+    if (user && !options.includePassword) {
       delete user.password;
       delete user.salt;
     }

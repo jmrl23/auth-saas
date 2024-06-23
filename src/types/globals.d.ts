@@ -16,4 +16,34 @@ export declare global {
     password?: string;
     salt?: string;
   }
+
+  export interface ApiApp
+    extends Prisma.ApiAppGetPayload<{
+      select: {
+        id: true;
+        createdAt: true;
+        updatedAt: true;
+        author: true;
+        name: true;
+      };
+    }> {}
+
+  export interface ApiKey
+    extends Prisma.ApiKeyGetPayload<{
+      select: {
+        id: true;
+        createdAt: true;
+        updatedAt: true;
+        user: true;
+        apps: {
+          select: {
+            id: true;
+            name: true;
+          };
+        };
+        apiKey: true;
+        expires: true;
+        enable: true;
+      };
+    }> {}
 }
