@@ -35,15 +35,14 @@ export declare global {
         createdAt: true;
         updatedAt: true;
         user: true;
-        apps: {
-          select: {
-            id: true;
-            name: true;
-          };
-        };
         apiKey: true;
         expires: true;
         enable: true;
       };
-    }> {}
+    }> {
+    apps: Array<{
+      id: string;
+      name: string;
+    }>;
+  }
 }

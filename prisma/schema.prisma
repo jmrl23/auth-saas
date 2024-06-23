@@ -59,7 +59,7 @@ model ApiKey {
 
   user   User     @relation(fields: [userId], references: [id])
   userId String
-  apps   ApiApp[]
+  apps   String[]
 
   apiKey  String    @unique
   expires DateTime?
@@ -71,10 +71,8 @@ model ApiApp {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author   User    @relation(fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id])
   authorId String
-  ApiKey   ApiKey? @relation(fields: [apiKeyId], references: [id])
-  apiKeyId String?
 
   name String @unique
 }
