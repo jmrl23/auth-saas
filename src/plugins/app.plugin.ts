@@ -1,9 +1,9 @@
 import fastifyPlugin from 'fastify-plugin';
 import { NotFound } from 'http-errors';
-import setupPlugin from './plugins/setup.plugin';
-import logger from './lib/util/logger';
+import setupPlugin from './setup.plugin';
+import logger from '../lib/util/logger';
 
-export default fastifyPlugin(async function appServerless(app) {
+export default fastifyPlugin(async function appPlugin(app) {
   app.register(setupPlugin, { prefix: '/' });
 
   app.setNotFoundHandler(async function notFoundHandler(request) {
