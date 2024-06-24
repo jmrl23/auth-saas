@@ -180,14 +180,26 @@ export default class ApiService {
     user: User,
     options: { expiresDays?: number; apps: string[] },
   ): Promise<ApiKey> {
-    const key = await prismaClient.apiKey.create({
+    const apiKey = `sk-${rs({
+      length: 29,
+      numeric: true,
+      letters: true,
+    })}`;
+
+    const count = await prismaClient.apiKey.count({
+      where: {
+        apiKey,
+      },
+    });
+
+    if (count > 0) {
+      return await this.createKey(user, options);
+    }
+
+    const createdKey = await prismaClient.apiKey.create({
       data: {
         userId: user.id,
-        apiKey: `sk-${rs({
-          length: 29,
-          numeric: true,
-          letters: true,
-        })}`,
+        apiKey,
         expires: options.expiresDays
           ? moment(new Date()).add(options.expiresDays, 'days').toDate()
           : undefined,
@@ -195,8 +207,8 @@ export default class ApiService {
       },
     });
 
-    const apiKey = await this.getKeyById(key.id);
-    return apiKey!;
+    const key = await this.getKeyById(createdKey.id);
+    return key!;
   }
 
   public async getKeyList(
