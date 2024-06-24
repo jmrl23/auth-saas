@@ -1,8 +1,4 @@
-import fastify from 'fastify';
-
-const app = fastify();
-
-app.register(require('./app').default);
+import app from './app';
 
 export default async function (request: Request, response: Response) {
   await app.ready();
