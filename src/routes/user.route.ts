@@ -80,7 +80,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'GET',
-      url: '/session/get',
+      url: '/session',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Get current session',
@@ -155,7 +155,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'DELETE',
-      url: '/session/delete',
+      url: '/logout',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         tags: ['user', 'delete'],
