@@ -126,10 +126,8 @@ export default asRoute(async function apiKeyRoute(app) {
       },
       async handler(request) {
         const { key } = request.query as FromSchema<typeof keyStatusSchema>;
-        const status = await this.apiService.getKeyStatus(
-          request.headers.host ?? '',
-          key,
-        );
+        const origin = request.headers.origin;
+        const status = await this.apiService.getKeyStatus(origin, key);
         return {
           status,
         };

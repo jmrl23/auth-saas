@@ -301,13 +301,13 @@ export default class ApiService {
   }
 
   public async getKeyStatus(
-    host?: string,
+    origin?: string,
     apiKey?: string,
   ): Promise<KeyStatus> {
-    if (!host) {
+    if (!origin) {
       return {
         active: false,
-        message: 'Cannot identify application source',
+        message: 'Unknown origin',
       };
     }
     if (!apiKey) {
@@ -355,7 +355,7 @@ export default class ApiService {
       .map((app) => app.urls.map((url) => new URL(url)))
       .flat(1);
 
-    if (urls.every((url) => host !== url.host)) {
+    if (urls.every((url) => origin !== url.origin)) {
       return {
         active: false,
         message: 'API key does not support the application',
