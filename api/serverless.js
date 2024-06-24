@@ -1,10 +1,10 @@
-import fastify from 'fastify';
+const fastify = require('fastify');
 
 const app = fastify();
 
-app.register(import('../build/serverless.js'));
+app.register(require('../build/serverless.js'));
 
-export default async function (request, response) {
+module.exports.default = async function serverless(request, response) {
   await app.ready();
   app.server.emit('request', request, response);
-}
+};
