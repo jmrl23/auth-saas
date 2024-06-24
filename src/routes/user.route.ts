@@ -81,7 +81,7 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'GET',
       url: '/session',
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       schema: {
         description: 'Get current session',
         tags: ['user', 'info'],
@@ -101,7 +101,7 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'PATCH',
       url: '/update/password',
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       schema: {
         description: 'Update user password',
         tags: ['user', 'update'],
@@ -129,7 +129,7 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'PATCH',
       url: '/update/information',
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       schema: {
         description: 'Update user information',
         tags: ['user', 'update'],
@@ -156,7 +156,7 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'DELETE',
       url: '/logout',
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       schema: {
         tags: ['user', 'delete'],
         description: 'Logout',

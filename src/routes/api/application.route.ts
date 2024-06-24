@@ -57,7 +57,7 @@ export default asRoute(async function apiAppRoute(app) {
           default: errorResponseSchema,
         },
       },
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const payload = request.query as FromSchema<
           typeof applicationGetListSchema

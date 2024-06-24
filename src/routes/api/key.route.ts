@@ -30,7 +30,7 @@ export default asRoute(async function apiKeyRoute(app) {
           default: errorResponseSchema,
         },
       },
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const payload = request.body as FromSchema<typeof keyCreateSchema>;
         const key = await this.apiService.createKey(request.user!, payload);
@@ -52,7 +52,7 @@ export default asRoute(async function apiKeyRoute(app) {
           default: errorResponseSchema,
         },
       },
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const payload = request.query as FromSchema<typeof keyListSchema>;
         const keys = await this.apiService.getKeyList(request.user!, payload);
@@ -74,7 +74,7 @@ export default asRoute(async function apiKeyRoute(app) {
           default: errorResponseSchema,
         },
       },
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const { id, enable } = request.body as FromSchema<
           typeof keyToggleSchema
@@ -102,7 +102,7 @@ export default asRoute(async function apiKeyRoute(app) {
           default: errorResponseSchema,
         },
       },
-      preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
+      preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const { id } = request.body as FromSchema<typeof keyDeleteSchema>;
         const key = await this.apiService.deleteKeyById(request.user!, id);
