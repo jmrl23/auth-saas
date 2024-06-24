@@ -204,29 +204,6 @@ export const userWithoutPasswordSchema = asJsonSchema({
   },
 } as const);
 
-export const userResponseSchema = asJsonSchema({
-  type: 'object',
-  description: 'User',
-  additionalProperties: false,
-  required: ['user'],
-  properties: {
-    user: { ...userWithoutPasswordSchema, nullable: true },
-  },
-} as const);
-
-export const userTokenResponseSchema = asJsonSchema({
-  type: 'object',
-  description: 'User session token',
-  additionalProperties: false,
-  required: ['token'],
-  properties: {
-    token: {
-      type: 'string',
-      examples: ['<jwt>'],
-    },
-  },
-} as const);
-
 export const userRegisterSchema = asJsonSchema({
   type: 'object',
   description: 'User register',
@@ -308,6 +285,99 @@ export const userUpdateInformationSchema = asJsonSchema({
       type: 'string',
       minLength: 1,
       examples: ['Johnny Doe'],
+    },
+  },
+} as const);
+
+export const userSendEmailVerificationSchema = asJsonSchema({
+  type: 'object',
+  description: 'Send email verification',
+  additionalProperties: false,
+  required: ['id'],
+  properties: {
+    id: {
+      type: 'string',
+      format: 'uuid',
+    },
+  },
+} as const);
+
+export const userVerifyEmailSchema = asJsonSchema({
+  type: 'object',
+  description: 'Verify user email',
+  additionalProperties: false,
+  required: ['email', 'otp'],
+  properties: {
+    email: {
+      type: 'string',
+      format: 'email',
+    },
+    otp: {
+      type: 'string',
+      minLength: 6,
+      maxLength: 6,
+    },
+  },
+} as const);
+
+export const userEmailUpdatePrimarySchema = asJsonSchema({
+  type: 'object',
+  description: "Set user's primary email",
+  additionalProperties: false,
+  required: ['id'],
+  properties: {
+    id: {
+      type: 'string',
+      format: 'uuid',
+    },
+  },
+} as const);
+
+export const userCreateEmailSchema = asJsonSchema({
+  type: 'object',
+  description: 'Create user email',
+  additionalProperties: false,
+  required: ['email'],
+  properties: {
+    email: {
+      type: 'string',
+      format: 'email',
+    },
+  },
+} as const);
+
+export const userDeleteEmailSchema = asJsonSchema({
+  type: 'object',
+  description: 'Delete user email',
+  additionalProperties: false,
+  required: ['id'],
+  properties: {
+    id: {
+      type: 'string',
+      format: 'uuid',
+    },
+  },
+} as const);
+
+export const userResponseSchema = asJsonSchema({
+  type: 'object',
+  description: 'User',
+  additionalProperties: false,
+  required: ['user'],
+  properties: {
+    user: { ...userWithoutPasswordSchema, nullable: true },
+  },
+} as const);
+
+export const userTokenResponseSchema = asJsonSchema({
+  type: 'object',
+  description: 'User session token',
+  additionalProperties: false,
+  required: ['token'],
+  properties: {
+    token: {
+      type: 'string',
+      examples: ['<jwt>'],
     },
   },
 } as const);

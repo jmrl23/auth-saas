@@ -1,7 +1,8 @@
 import { type UserInformation, UserRole } from '@prisma/client';
-import { Conflict, Unauthorized } from 'http-errors';
+import { Conflict, BadRequest, Unauthorized, NotFound } from 'http-errors';
 import jwt from 'jsonwebtoken';
 import ms from 'ms';
+import rs from 'random-string';
 import crypto from 'node:crypto';
 import { JWT_SECRET } from '../lib/constant/environment';
 import prismaClient from '../lib/prismaClient';
@@ -136,6 +137,7 @@ export default class UserService {
             emails: {
               some: {
                 email: usernameOrEmail,
+                verified: true,
               },
             },
           },
@@ -204,33 +206,6 @@ export default class UserService {
     return updatedUser!;
   }
 
-  public async setUserPrimaryEmail(user: User, emailId: string): Promise<User> {
-    await prismaClient.userEmail.updateMany({
-      where: {
-        NOT: {
-          id: emailId,
-        },
-        userId: user.id,
-      },
-      data: {
-        primary: false,
-      },
-    });
-
-    await prismaClient.userEmail.update({
-      where: {
-        id: emailId,
-        userId: user.id,
-      },
-      data: {
-        primary: true,
-      },
-    });
-
-    const updatedUser = await this.getUserById(user.id, { revalidate: true });
-    return updatedUser!;
-  }
-
   public async addUserEmail(user: User, email: string): Promise<User> {
     email = email.toLowerCase();
 
@@ -264,6 +239,114 @@ export default class UserService {
     const key = `session:${token}`;
     await this.cacheService.del(key);
     return user;
+  }
+
+  public async sendUserEmailVerification(
+    user: User,
+    emailId: string,
+  ): Promise<string> {
+    const email = user.emails.find((email) => email.id === emailId);
+    if (!email) throw new NotFound('Email not found');
+    if (email.verified) throw new BadRequest('Email already verified');
+    const cacheKey = `email:verify:${email.email}`;
+    const cachedOtp = await this.cacheService.get<string>(cacheKey);
+    if (cachedOtp) return cachedOtp;
+    const otp = rs({
+      length: 6,
+      letters: false,
+      numeric: true,
+      special: false,
+    });
+    // TODO: Send OTP on email
+    await this.cacheService.set(cacheKey, otp, ms('12h'));
+    return otp;
+  }
+
+  public async verifyUserEmail(email: string, otp: string): Promise<User> {
+    const key = `email:verify:${email}`;
+    const cachedOtp = await this.cacheService.get<string>(key);
+    if (cachedOtp !== otp) throw BadRequest('Invalid email verification url');
+    const _email = await prismaClient.userEmail.update({
+      where: {
+        email,
+      },
+      data: {
+        verified: true,
+      },
+      select: {
+        userId: true,
+      },
+    });
+    await this.cacheService.del(key);
+    const user = await this.getUserById(_email.userId, { revalidate: true });
+    return user!;
+  }
+
+  public async setUserPrimaryEmail(user: User, id: string): Promise<User> {
+    const email = user.emails.find((email) => email.id === id);
+    if (!email) throw new NotFound('Email not found');
+    if (email.primary) throw new BadRequest('Email is already used as primary');
+    await prismaClient.userEmail.updateMany({
+      where: {
+        userId: user.id,
+      },
+      data: {
+        primary: false,
+      },
+    });
+    await prismaClient.userEmail.update({
+      where: {
+        id,
+        userId: user.id,
+      },
+      data: {
+        primary: true,
+      },
+    });
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
+    return updatedUser!;
+  }
+
+  public async createUserEmail(user: User, email: string): Promise<User> {
+    email = email.toLowerCase();
+
+    if (user.emails.some((email) => !email.verified)) {
+      throw new BadRequest('All emails must be a verified');
+    }
+
+    const count = await prismaClient.userEmail.count({
+      where: {
+        email,
+      },
+    });
+
+    if (count > 0) throw new Conflict('Email already taken');
+
+    await prismaClient.userEmail.create({
+      data: {
+        userId: user.id,
+        email,
+      },
+    });
+
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
+    return updatedUser!;
+  }
+
+  public async deleteUserEmail(user: User, id: string): Promise<User> {
+    if (user.emails.length < 2) throw BadRequest('Cannot remove all emails');
+    if (user.emails.find((_email) => _email.id === id))
+      throw new NotFound('Email not found');
+
+    await prismaClient.userEmail.delete({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
+    return updatedUser!;
   }
 
   private async createUserSession(
