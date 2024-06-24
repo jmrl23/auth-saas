@@ -1,10 +1,19 @@
-import fastify from 'fastify';
+import fastifyPlugin from 'fastify-plugin';
+import { NotFound } from 'http-errors';
+import setupPlugin from './plugins/setup.plugin';
+import logger from './lib/util/logger';
 
-const app = fastify();
+export default fastifyPlugin(async function appServerless(app) {
+  app.register(setupPlugin, { prefix: '/' });
 
-app.register(import('./app.serverless'));
+  app.setNotFoundHandler(async function notFoundHandler(request) {
+    throw new NotFound(`Cannot ${request.method} ${request.url}`);
+  });
 
-export default async function (request: Request, response: Response) {
-  await app.ready();
-  app.server.emit('request', request, response);
-}
+  app.setErrorHandler(async function errorHandler(error) {
+    if (!error.statusCode || error.statusCode > 499) {
+      logger.error(error.stack);
+    }
+    return error;
+  });
+});
