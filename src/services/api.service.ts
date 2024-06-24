@@ -344,7 +344,7 @@ export default class ApiService {
       };
     }
 
-    if (api.expires && api.expires < new Date()) {
+    if (api.expires && api.expires <= new Date()) {
       return {
         active: false,
         message: 'API key expired',
