@@ -25,6 +25,7 @@ export declare global {
         updatedAt: true;
         authorId: true;
         name: true;
+        urls: true;
       };
     }> {}
 
@@ -43,6 +44,7 @@ export declare global {
     apps: Array<{
       id: string;
       name: string;
+      urls: string[];
     }>;
   }
 }

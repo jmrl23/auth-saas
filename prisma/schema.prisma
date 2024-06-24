@@ -74,5 +74,6 @@ model ApiApplication {
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 
-  name String @unique
+  name String   @unique
+  urls String[]
 }

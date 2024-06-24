@@ -8,7 +8,11 @@ import CacheService from './cache.service';
 export default class ApiService {
   constructor(private readonly cacheService: CacheService) {}
 
-  public async createApp(user: User, name: string): Promise<ApiApplication> {
+  public async createApp(
+    user: User,
+    name: string,
+    urls: string[],
+  ): Promise<ApiApplication> {
     const count = await prismaClient.apiApplication.count({
       where: {
         name,
@@ -21,6 +25,7 @@ export default class ApiService {
       data: {
         name,
         authorId: user.id,
+        urls,
       },
     });
 
@@ -50,6 +55,7 @@ export default class ApiService {
         updatedAt: true,
         authorId: true,
         name: true,
+        urls: true,
       },
     });
 
@@ -58,18 +64,11 @@ export default class ApiService {
   }
 
   public async getAppList(
-    payload: Partial<{
-      revalidate: boolean;
-      createdAtFrom: string;
-      createdAtTo: string;
-      updatedAtFrom: string;
-      updatedAtTo: string;
-      name: string;
-      authorId: string;
-      skip: number;
-      take: number;
-      order: 'asc' | 'desc';
-    }>,
+    payload: ListPayload &
+      Partial<{
+        name: string;
+        authorId: string;
+      }>,
   ): Promise<ApiApplication[]> {
     const { revalidate, ...p } = payload;
     const cacheKey = `application:list:[${[
@@ -136,7 +135,7 @@ export default class ApiService {
     id: string,
     options: Partial<{ revalidate: boolean }> = {},
   ): Promise<ApiKey | null> {
-    const cacheKey = `apiKey:${id}`;
+    const cacheKey = `key:${id}`;
     const cachedApiKey = await this.cacheService.get<ApiKey>(cacheKey);
 
     if (options.revalidate === true) {
@@ -164,11 +163,12 @@ export default class ApiService {
     const apps: Array<{
       id: string;
       name: string;
+      urls: string[];
     }> = (
       await Promise.all(apiKey?.apps.map((app) => this.getAppById(app)) ?? [])
     )
       .filter((app) => app !== null)
-      .map((app) => ({ id: app.id, name: app.name }));
+      .map((app) => ({ id: app.id, name: app.name, urls: app.urls }));
 
     const parsedApiKey: ApiKey | null = !apiKey ? null : { ...apiKey, apps };
 
@@ -201,18 +201,12 @@ export default class ApiService {
 
   public async getKeyList(
     user: User,
-    payload: Partial<{
-      revalidate: boolean;
-      createdAtFrom: string;
-      createdAtTo: string;
-      updatedAtFrom: string;
-      updatedAtTo: string;
-      expired: boolean;
-      enable: boolean;
-      skip: number;
-      take: number;
-      order: 'asc' | 'desc';
-    }>,
+    payload: ListPayload &
+      Partial<{
+        expired: boolean;
+        enable: boolean;
+        apps: string[];
+      }>,
   ): Promise<ApiKey[]> {
     const { revalidate, ...p } = payload;
     const cacheKey = `application:list:[${[
@@ -223,6 +217,7 @@ export default class ApiService {
       p.updatedAtTo,
       p.expired,
       p.enable,
+      p.apps?.join('.'),
       p.skip,
       p.take,
       p.order,
@@ -241,6 +236,7 @@ export default class ApiService {
           gte: p.updatedAtFrom ? moment(p.updatedAtFrom).toDate() : undefined,
           lte: p.updatedAtTo ? moment(p.updatedAtTo).toDate() : undefined,
         },
+        apps: p.apps ? { hasSome: p.apps } : undefined,
         enable: p.enable,
         expires: !p.expired
           ? undefined
@@ -268,31 +264,30 @@ export default class ApiService {
     id: string,
     enable?: boolean,
   ): Promise<ApiKey> {
-    const apiKey = await this.getKeyById(id);
-    if (!apiKey) throw new NotFound('API key not found');
-    if (id !== user.id) throw new Unauthorized('API key not owned');
+    const key = await this.getKeyById(id);
+    if (!key) throw new NotFound('API key not found');
+    if (key.userId !== user.id) throw new Unauthorized('API key not owned');
 
-    const _apiKey = await prismaClient.apiKey.update({
+    const _key = await prismaClient.apiKey.update({
       where: {
         id,
         userId: user.id,
       },
       data: {
-        enable: typeof enable !== 'boolean' ? !apiKey.enable : enable,
+        enable: enable === undefined ? !key.enable : enable,
       },
     });
 
-    const updatedApiKey = await this.getKeyById(_apiKey.id, {
+    const updatedKey = await this.getKeyById(_key.id, {
       revalidate: true,
     });
-
-    return updatedApiKey!;
+    return updatedKey!;
   }
 
   public async deleteKeyById(user: User, id: string): Promise<ApiKey> {
-    const apiKey = await this.getKeyById(id);
-    if (!apiKey) throw new NotFound('API key not found');
-    if (id !== user.id) throw new Unauthorized('API key not owned');
+    const key = await this.getKeyById(id);
+    if (!key) throw new NotFound('API key not found');
+    if (key.userId !== user.id) throw new Unauthorized('API key not owned');
 
     await prismaClient.apiKey.delete({
       where: {
@@ -302,71 +297,89 @@ export default class ApiService {
     });
 
     await this.getKeyById(id, { revalidate: true });
-    return apiKey;
+    return key;
   }
 
-  public async getStatus(
-    key: ApiKey | null,
-    app: ApiApplication | null,
-    revalidate: boolean = false,
-  ): Promise<{ active: boolean; message?: string }> {
-    const cacheKey = `key:status:[${[key?.id, app?.id].join(',')}]`;
-    if (revalidate === true) await this.cacheService.del(cacheKey);
-    const cachedStatus = await this.cacheService.get<{
-      active: boolean;
-      message?: string;
-    }>(cacheKey);
-    if (cachedStatus) return cachedStatus;
+  public async getKeyStatus(
+    host?: string,
+    apiKey?: string,
+  ): Promise<KeyStatus> {
+    if (!host) {
+      return {
+        active: false,
+        message: 'Cannot identify application source',
+      };
+    }
+    if (!apiKey) {
+      return {
+        active: false,
+        message: 'API key missing',
+      };
+    }
+    const cacheKey = `apiKey:${apiKey}`;
+    let id: string;
+    const cachedId = await this.cacheService.get<string>(cacheKey);
+    if (cachedId) {
+      id = cachedId;
+    } else {
+      id =
+        (
+          await prismaClient.apiKey.findUnique({
+            where: {
+              apiKey,
+            },
+            select: {
+              id: true,
+            },
+          })
+        )?.id ?? 'no-reference';
+      await this.cacheService.set(cacheKey, id, ms('5m'));
+    }
+    const api = await this.getKeyById(id);
 
-    if (!key) {
-      await this.cacheService.set(
-        cacheKey,
-        {
-          active: false,
-          message: 'Invalid key',
-        },
-        ms('5m'),
-      );
-      return await this.getStatus(key, app, false);
+    if (!api) {
+      return {
+        active: false,
+        message: 'API key is invalid',
+      };
     }
 
-    if (!key.enable) {
-      await this.cacheService.set(
-        cacheKey,
-        {
-          active: false,
-          message: 'Disabled key',
-        },
-        ms('5m'),
-      );
-      return await this.getStatus(key, app, false);
+    if (api.expires && api.expires < new Date()) {
+      return {
+        active: false,
+        message: 'API key expired',
+      };
     }
 
-    if (key.expires && key.expires >= new Date()) {
-      await this.cacheService.set(
-        cacheKey,
-        {
-          active: false,
-          message: 'Expired key',
-        },
-        ms('5m'),
-      );
-      return await this.getStatus(key, app, false);
+    const urls = api.apps
+      .map((app) => app.urls.map((url) => new URL(url)))
+      .flat(1);
+
+    if (urls.every((url) => host !== url.host)) {
+      return {
+        active: false,
+        message: 'API key does not support the application',
+      };
     }
 
-    if (!key.apps.find((_app) => _app.id === app?.id)) {
-      await this.cacheService.set(
-        cacheKey,
-        {
-          active: false,
-          message: 'No access',
-        },
-        ms('5m'),
-      );
-      return await this.getStatus(key, app, false);
-    }
-
-    await this.cacheService.set(cacheKey, { active: true }, ms('5m'));
-    return await this.getStatus(key, app, false);
+    return {
+      active: true,
+    };
   }
+}
+
+interface KeyStatus {
+  active: boolean;
+  message?: string;
+}
+
+interface ListPayload {
+  revalidate?: boolean;
+  createdAtFrom?: string;
+  createdAtTo?: string;
+  updatedAtFrom?: string;
+  updatedAtTo?: string;
+  skip?: number;
+  take?: number;
+  order?: 'asc' | 'desc';
 }

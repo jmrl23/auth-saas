@@ -4,7 +4,7 @@ export const applicationSchema = asJsonSchema({
   type: 'object',
   description: 'Application',
   additionalProperties: false,
-  required: ['id', 'createdAt', 'updatedAt', 'authorId', 'name'],
+  required: ['id', 'createdAt', 'updatedAt', 'authorId', 'name', 'urls'],
   properties: {
     id: {
       type: 'string',
@@ -26,6 +26,14 @@ export const applicationSchema = asJsonSchema({
       type: 'string',
       examples: ['file'],
     },
+    urls: {
+      type: 'array',
+      items: {
+        type: 'string',
+        format: 'uri',
+        examples: ['https://example.com'],
+      },
+    },
   },
 } as const);
 
@@ -33,12 +41,20 @@ export const applicationCreateSchema = asJsonSchema({
   type: 'object',
   description: 'Create application',
   additionalProperties: false,
-  required: ['name'],
+  required: ['name', 'urls'],
   properties: {
     name: {
       type: 'string',
       examples: ['file'],
       minLength: 1,
+    },
+    urls: {
+      type: 'array',
+      items: {
+        type: 'string',
+        format: 'uri',
+        examples: ['https://app.example.com'],
+      },
     },
   },
 } as const);
@@ -70,15 +86,6 @@ export const applicationGetListSchema = asJsonSchema({
       type: 'string',
       format: 'date',
     },
-    name: {
-      type: 'string',
-      minLength: 1,
-      examples: ['file'],
-    },
-    authorId: {
-      type: 'string',
-      format: 'uuid',
-    },
     skip: {
       type: 'integer',
       minimum: 0,
@@ -92,6 +99,15 @@ export const applicationGetListSchema = asJsonSchema({
       enum: ['asc', 'desc'],
       default: 'asc',
       examples: ['asc'],
+    },
+    name: {
+      type: 'string',
+      minLength: 1,
+      examples: ['file'],
+    },
+    authorId: {
+      type: 'string',
+      format: 'uuid',
     },
   },
 } as const);

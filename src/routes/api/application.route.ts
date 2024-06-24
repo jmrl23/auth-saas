@@ -30,12 +30,13 @@ export default asRoute(async function apiAppRoute(app) {
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
       async handler(request) {
-        const { name } = request.body as FromSchema<
+        const { name, urls } = request.body as FromSchema<
           typeof applicationCreateSchema
         >;
         const application = await this.apiService.createApp(
           request.user!,
           name,
+          urls,
         );
         return {
           application,
