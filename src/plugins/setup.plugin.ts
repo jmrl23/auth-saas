@@ -9,9 +9,16 @@ import routesPlugin from './routes.plugin';
 import middlewaresPlugin from './middlewares.plugin';
 import servicesPlugin from './services.plugin';
 import userPlugin from './user.plugin';
+import fastifyRateLimit from '@fastify/rate-limit';
+import ms from 'ms';
 
 export default fastifyPlugin(
   async function setupPlugin(app) {
+    await app.register(fastifyRateLimit, {
+      timeWindow: ms('1m'),
+      max: 300,
+    });
+
     await app.register(servicesPlugin, {
       prefix: '/',
     });

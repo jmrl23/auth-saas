@@ -12,6 +12,7 @@ import {
   userUpdateInformationSchema,
   userUpdatePasswordSchema,
 } from '../schemas/user.schema';
+import ms from 'ms';
 
 export const prefix = '/user';
 
@@ -28,6 +29,12 @@ export default asRoute(async function userRoute(app) {
         response: {
           200: userResponseSchema,
           default: errorResponseSchema,
+        },
+      },
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: ms('10m'),
         },
       },
       async handler(request) {
@@ -62,6 +69,12 @@ export default asRoute(async function userRoute(app) {
         response: {
           200: userTokenResponseSchema,
           default: errorResponseSchema,
+        },
+      },
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: ms('5m'),
         },
       },
       async handler(request) {
@@ -101,6 +114,12 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'PATCH',
       url: '/update/password',
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: ms('5m'),
+        },
+      },
       preHandler: [userAuthorization('ALL')],
       schema: {
         description: 'Update user password',
@@ -130,6 +149,12 @@ export default asRoute(async function userRoute(app) {
       method: 'PATCH',
       url: '/update/information',
       preHandler: [userAuthorization('ALL')],
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: ms('5m'),
+        },
+      },
       schema: {
         description: 'Update user information',
         tags: ['user', 'update'],
