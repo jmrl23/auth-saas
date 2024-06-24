@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client';
 import type { FromSchema } from 'json-schema-to-ts';
 import userAuthorization from '../../handlers/user-authorization';
 import { asRoute } from '../../lib/util/typings';
@@ -63,6 +62,28 @@ export default asRoute(async function apiKeyRoute(app) {
     })
 
     .route({
+      method: 'GET',
+      url: '',
+      schema: {
+        description: 'Get key status',
+        tags: ['api', 'key', 'info'],
+        querystring: keyStatusSchema,
+        response: {
+          200: keyStatusResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+      async handler(request) {
+        const { key } = request.query as FromSchema<typeof keyStatusSchema>;
+        const origin = request.headers.origin;
+        const status = await this.apiService.getKeyStatus(origin, key);
+        return {
+          status,
+        };
+      },
+    })
+
+    .route({
       method: 'PATCH',
       url: '/update/enable',
       schema: {
@@ -108,28 +129,6 @@ export default asRoute(async function apiKeyRoute(app) {
         const key = await this.apiService.deleteKeyById(request.user!, id);
         return {
           key,
-        };
-      },
-    })
-
-    .route({
-      method: 'GET',
-      url: '',
-      schema: {
-        description: 'Get key status',
-        tags: ['api', 'key', 'info'],
-        querystring: keyStatusSchema,
-        response: {
-          200: keyStatusResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      async handler(request) {
-        const { key } = request.query as FromSchema<typeof keyStatusSchema>;
-        const origin = request.headers.origin;
-        const status = await this.apiService.getKeyStatus(origin, key);
-        return {
-          status,
         };
       },
     });
