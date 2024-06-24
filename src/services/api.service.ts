@@ -110,7 +110,7 @@ export default class ApiService {
 
     const parsedAppList = (
       await Promise.all(appList.map((app) => this.getAppById(app.id)))
-    ).filter((app) => app !== null);
+    ).filter((app) => app !== null) as ApiApplication[];
 
     await this.cacheService.set(cacheKey, parsedAppList, ms('5m'));
     return parsedAppList;
@@ -165,10 +165,10 @@ export default class ApiService {
       name: string;
       urls: string[];
     }> = (
-      await Promise.all(apiKey?.apps.map((app) => this.getAppById(app)) ?? [])
-    )
-      .filter((app) => app !== null)
-      .map((app) => ({ id: app.id, name: app.name, urls: app.urls }));
+      (
+        await Promise.all(apiKey?.apps.map((app) => this.getAppById(app)) ?? [])
+      ).filter((app) => app !== null) as ApiApplication[]
+    ).map((app) => ({ id: app.id, name: app.name, urls: app.urls }));
 
     const parsedApiKey: ApiKey | null = !apiKey ? null : { ...apiKey, apps };
 
@@ -265,7 +265,7 @@ export default class ApiService {
 
     const parsedKeyList = (
       await Promise.all(keyList.map((key) => this.getKeyById(key.id)))
-    ).filter((key) => key !== null);
+    ).filter((key) => key !== null) as ApiKey[];
 
     await this.cacheService.set(cacheKey, parsedKeyList, ms('5m'));
     return parsedKeyList;
