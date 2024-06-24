@@ -66,7 +66,7 @@ export default asRoute(async function apiKeyRoute(app) {
       url: '',
       schema: {
         description: 'Get key status',
-        tags: ['api', 'key', 'info'],
+        tags: ['api', 'key', 'info', 'auth'],
         querystring: keyStatusSchema,
         response: {
           200: keyStatusResponseSchema,
