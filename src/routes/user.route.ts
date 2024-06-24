@@ -19,7 +19,7 @@ export default asRoute(async function userRoute(app) {
   app
     .route({
       method: 'POST',
-      url: '/register',
+      url: '/create',
       schema: {
         description: 'Register user',
         security: [],
@@ -100,7 +100,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/password/update',
+      url: '/update/password',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Update user password',
@@ -128,7 +128,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/information/update',
+      url: '/update/information',
       preHandler: [userAuthorization(UserRole.ADMIN, UserRole.USER)],
       schema: {
         description: 'Update user information',

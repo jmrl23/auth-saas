@@ -64,7 +64,7 @@ export default asRoute(async function apiKeyRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/toggle',
+      url: '/update/enable',
       schema: {
         description: 'Toggle key',
         tags: ['api', 'key', 'update'],
