@@ -63,6 +63,24 @@ export default class ApiService {
     return app;
   }
 
+  public async updateAppUrlsById(
+    id: string,
+    urls: string[],
+  ): Promise<ApiApplication> {
+    const app = await this.getAppById(id);
+    if (!app) throw NotFound('API application not found');
+    await prismaClient.apiApplication.update({
+      where: {
+        id,
+      },
+      data: {
+        urls,
+      },
+    });
+    const updatedApp = await this.getAppById(id, { revalidate: true });
+    return updatedApp!;
+  }
+
   public async getAppList(
     payload: ListPayload &
       Partial<{

@@ -112,6 +112,26 @@ export const applicationGetListSchema = asJsonSchema({
   },
 } as const);
 
+export const applicationUpdateUrls = asJsonSchema({
+  type: 'object',
+  description: 'Update application urls',
+  additionalProperties: false,
+  required: ['id', 'urls'],
+  properties: {
+    id: {
+      type: 'string',
+      format: 'uuid',
+    },
+    urls: {
+      type: 'array',
+      items: {
+        type: 'string',
+        format: 'uri',
+      },
+    },
+  },
+} as const);
+
 export const applicationDeleteSchema = asJsonSchema({
   type: 'object',
   description: 'Delete application',

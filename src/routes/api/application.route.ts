@@ -8,6 +8,7 @@ import {
   applicationGetListSchema,
   applicationListResponseSchema,
   applicationResponseSchema,
+  applicationUpdateUrls,
 } from '../../schemas/api/application.schema';
 import { errorResponseSchema } from '../../schemas/error.schema';
 
@@ -64,6 +65,30 @@ export default asRoute(async function apiAppRoute(app) {
         const applications = await this.apiService.getAppList(payload);
         return {
           applications,
+        };
+      },
+    })
+
+    .route({
+      method: 'PATCH',
+      url: '/update/urls',
+      schema: {
+        description: 'Update application urls',
+        tags: ['api', 'application', 'update'],
+        body: applicationUpdateUrls,
+        response: {
+          200: applicationResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+      preHandler: [userAuthorization(UserRole.ADMIN)],
+      async handler(request) {
+        const { id, urls } = request.body as FromSchema<
+          typeof applicationUpdateUrls
+        >;
+        const application = await this.apiService.updateAppUrlsById(id, urls);
+        return {
+          application,
         };
       },
     })
