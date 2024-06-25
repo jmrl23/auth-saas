@@ -1,15 +1,19 @@
 import { type UserInformation, UserRole } from '@prisma/client';
-import { Conflict, BadRequest, Unauthorized, NotFound } from 'http-errors';
+import { BadRequest, Conflict, NotFound, Unauthorized } from 'http-errors';
 import jwt from 'jsonwebtoken';
 import ms from 'ms';
-import rs from 'random-string';
 import crypto from 'node:crypto';
+import rs from 'random-string';
 import { JWT_SECRET } from '../lib/constant/environment';
 import prismaClient from '../lib/prismaClient';
 import CacheService from './cache.service';
+import EmailService from './email.service';
 
 export default class UserService {
-  constructor(private readonly cacheService: CacheService) {}
+  constructor(
+    private readonly cacheService: CacheService,
+    private readonly emailService: EmailService,
+  ) {}
 
   public async createUser(
     username: string,
@@ -257,8 +261,14 @@ export default class UserService {
       numeric: true,
       special: false,
     });
-    // TODO: Send OTP on email
     await this.cacheService.set(cacheKey, otp, ms('12h'));
+    await this.emailService.send({
+      from: 'noreply <gaiterajomariel@gmail.com>',
+      to: [email.email],
+      subject: 'Email verification',
+      text: `Verification OTP for email ${email.email}: ${otp}`,
+      html: `Verification OTP for email <strong>${email.email}<strong>: <strong>${otp}</strong>`,
+    });
     return otp;
   }
 
@@ -335,8 +345,9 @@ export default class UserService {
 
   public async deleteUserEmail(user: User, id: string): Promise<User> {
     if (user.emails.length < 2) throw BadRequest('Cannot remove all emails');
-    if (user.emails.find((_email) => _email.id === id))
+    if (!user.emails.find((_email) => _email.id === id)) {
       throw new NotFound('Email not found');
+    }
 
     await prismaClient.userEmail.delete({
       where: {

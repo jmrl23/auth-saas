@@ -166,12 +166,7 @@ export default asRoute(async function userRoute(app) {
         const { id } = request.params as FromSchema<
           typeof userSendEmailVerificationSchema
         >;
-        const otp = await this.userService.sendUserEmailVerification(
-          request.user!,
-          id,
-        );
-        // TODO: update later
-        console.log({ otp });
+        await this.userService.sendUserEmailVerification(request.user!, id);
         return {
           user: request.user,
         };

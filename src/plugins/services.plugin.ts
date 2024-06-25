@@ -5,6 +5,8 @@ import { REDIS_URL } from '../lib/constant/environment';
 import ApiService from '../services/api.service';
 import CacheService from '../services/cache.service';
 import UserService from '../services/user.service';
+import EmailService from '../services/email.service';
+import smtpTransport from '../lib/smtpTransport';
 
 export default fastifyPlugin(
   async function servicesPlugin(app) {
@@ -22,7 +24,8 @@ export default fastifyPlugin(
       });
       const cache = await caching(cacheStore);
       const cacheService = new CacheService(cache);
-      const userService = new UserService(cacheService);
+      const emailService = new EmailService(smtpTransport);
+      const userService = new UserService(cacheService, emailService);
       return userService;
     }
 
