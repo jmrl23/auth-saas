@@ -338,12 +338,6 @@ export default class ApiService {
     origin?: string,
     apiKey?: string,
   ): Promise<KeyStatus> {
-    if (!origin) {
-      return {
-        active: false,
-        message: 'Unknown origin',
-      };
-    }
     if (!apiKey) {
       return {
         active: false,
@@ -385,15 +379,17 @@ export default class ApiService {
       };
     }
 
-    const urls = api.applications
-      .map((app) => app.origins.map((origin) => new URL(origin)))
-      .flat(1);
+    if (origin) {
+      const origins = api.applications
+        .map((app) => app.origins.map((origin) => new URL(origin).origin))
+        .flat(1);
 
-    if (urls.every((url) => origin !== url.origin)) {
-      return {
-        active: false,
-        message: 'API key does not support the application',
-      };
+      if (origins.includes(origin)) {
+        return {
+          active: false,
+          message: 'API key does not support the application',
+        };
+      }
     }
 
     return {
