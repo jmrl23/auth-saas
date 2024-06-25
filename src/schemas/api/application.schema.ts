@@ -4,7 +4,7 @@ export const applicationSchema = asJsonSchema({
   type: 'object',
   description: 'Application',
   additionalProperties: false,
-  required: ['id', 'createdAt', 'updatedAt', 'authorId', 'name', 'urls'],
+  required: ['id', 'createdAt', 'updatedAt', 'authorId', 'name', 'origins'],
   properties: {
     id: {
       type: 'string',
@@ -26,7 +26,7 @@ export const applicationSchema = asJsonSchema({
       type: 'string',
       examples: ['file'],
     },
-    urls: {
+    origins: {
       type: 'array',
       items: {
         type: 'string',
@@ -41,14 +41,14 @@ export const applicationCreateSchema = asJsonSchema({
   type: 'object',
   description: 'Create application',
   additionalProperties: false,
-  required: ['name', 'urls'],
+  required: ['name', 'origins'],
   properties: {
     name: {
       type: 'string',
       examples: ['file'],
       minLength: 1,
     },
-    urls: {
+    origins: {
       type: 'array',
       items: {
         type: 'string',
@@ -112,17 +112,17 @@ export const applicationGetListSchema = asJsonSchema({
   },
 } as const);
 
-export const applicationUpdateUrls = asJsonSchema({
+export const applicationUpdateOrigins = asJsonSchema({
   type: 'object',
-  description: 'Update application urls',
+  description: 'Update application origins',
   additionalProperties: false,
-  required: ['id', 'urls'],
+  required: ['id', 'origins'],
   properties: {
     id: {
       type: 'string',
       format: 'uuid',
     },
-    urls: {
+    origins: {
       type: 'array',
       items: {
         type: 'string',

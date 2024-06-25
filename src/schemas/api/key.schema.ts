@@ -12,7 +12,7 @@ export const keySchema = asJsonSchema({
     'apiKey',
     'expires',
     'enable',
-    'apps',
+    'applications',
   ],
   properties: {
     id: {
@@ -43,7 +43,7 @@ export const keySchema = asJsonSchema({
       type: 'boolean',
       examples: [true],
     },
-    apps: {
+    applications: {
       type: 'array',
       additionalItems: false,
       items: {
@@ -69,13 +69,13 @@ export const keyCreateSchema = asJsonSchema({
   type: 'object',
   description: 'Create key',
   additionalProperties: false,
-  required: ['apps'],
+  required: ['applications'],
   properties: {
     expiresDays: {
       type: 'integer',
       minimum: 1,
     },
-    apps: {
+    applications: {
       type: 'array',
       items: {
         type: 'string',
@@ -134,7 +134,7 @@ export const keyListSchema = asJsonSchema({
       type: 'boolean',
       examples: [true],
     },
-    apps: {
+    applications: {
       type: 'array',
       items: {
         type: 'string',

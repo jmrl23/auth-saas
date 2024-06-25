@@ -25,7 +25,7 @@ export declare global {
         updatedAt: true;
         authorId: true;
         name: true;
-        urls: true;
+        origins: true;
       };
     }> {}
 
@@ -41,10 +41,10 @@ export declare global {
         enable: true;
       };
     }> {
-    apps: Array<{
+    applications: Array<{
       id: string;
       name: string;
-      urls: string[];
+      origins: string[];
     }>;
   }
 }

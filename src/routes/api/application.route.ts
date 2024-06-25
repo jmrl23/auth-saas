@@ -8,7 +8,7 @@ import {
   applicationGetListSchema,
   applicationListResponseSchema,
   applicationResponseSchema,
-  applicationUpdateUrls,
+  applicationUpdateOrigins,
 } from '../../schemas/api/application.schema';
 import { errorResponseSchema } from '../../schemas/error.schema';
 
@@ -31,13 +31,13 @@ export default asRoute(async function apiAppRoute(app) {
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
       async handler(request) {
-        const { name, urls } = request.body as FromSchema<
+        const { name, origins } = request.body as FromSchema<
           typeof applicationCreateSchema
         >;
         const application = await this.apiService.createApp(
           request.user!,
           name,
-          urls,
+          origins,
         );
         return {
           application,
@@ -71,11 +71,11 @@ export default asRoute(async function apiAppRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update/urls',
+      url: '/update/origins',
       schema: {
-        description: 'Update application urls',
+        description: 'Update application origins',
         tags: ['api', 'application', 'update'],
-        body: applicationUpdateUrls,
+        body: applicationUpdateOrigins,
         response: {
           200: applicationResponseSchema,
           default: errorResponseSchema,
@@ -83,10 +83,13 @@ export default asRoute(async function apiAppRoute(app) {
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
       async handler(request) {
-        const { id, urls } = request.body as FromSchema<
-          typeof applicationUpdateUrls
+        const { id, origins } = request.body as FromSchema<
+          typeof applicationUpdateOrigins
         >;
-        const application = await this.apiService.updateAppUrlsById(id, urls);
+        const application = await this.apiService.updateAppOriginsById(
+          id,
+          origins,
+        );
         return {
           application,
         };

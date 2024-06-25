@@ -11,7 +11,7 @@ export default class ApiService {
   public async createApp(
     user: User,
     name: string,
-    urls: string[],
+    origins: string[],
   ): Promise<ApiApplication> {
     const count = await prismaClient.apiApplication.count({
       where: {
@@ -25,7 +25,7 @@ export default class ApiService {
       data: {
         name,
         authorId: user.id,
-        urls,
+        origins,
       },
     });
 
@@ -45,7 +45,7 @@ export default class ApiService {
 
     if (cachedApp) return cachedApp;
 
-    const app = await prismaClient.apiApplication.findUnique({
+    const application = await prismaClient.apiApplication.findUnique({
       where: {
         id,
       },
@@ -55,17 +55,17 @@ export default class ApiService {
         updatedAt: true,
         authorId: true,
         name: true,
-        urls: true,
+        origins: true,
       },
     });
 
-    await this.cacheService.set(cacheKey, app, ms('5m'));
-    return app;
+    await this.cacheService.set(cacheKey, application, ms('5m'));
+    return application;
   }
 
-  public async updateAppUrlsById(
+  public async updateAppOriginsById(
     id: string,
-    urls: string[],
+    origins: string[],
   ): Promise<ApiApplication> {
     const app = await this.getAppById(id);
     if (!app) throw NotFound('API application not found');
@@ -74,7 +74,7 @@ export default class ApiService {
         id,
       },
       data: {
-        urls,
+        origins,
       },
     });
     const updatedApp = await this.getAppById(id, { revalidate: true });
@@ -172,23 +172,27 @@ export default class ApiService {
         updatedAt: true,
         userId: true,
         apiKey: true,
-        apps: true,
+        applications: true,
         expires: true,
         enable: true,
       },
     });
 
-    const apps: Array<{
+    const applications: Array<{
       id: string;
       name: string;
-      urls: string[];
+      origins: string[];
     }> = (
       (
-        await Promise.all(apiKey?.apps.map((app) => this.getAppById(app)) ?? [])
+        await Promise.all(
+          apiKey?.applications.map((app) => this.getAppById(app)) ?? [],
+        )
       ).filter((app) => app !== null) as ApiApplication[]
-    ).map((app) => ({ id: app.id, name: app.name, urls: app.urls }));
+    ).map((app) => ({ id: app.id, name: app.name, origins: app.origins }));
 
-    const parsedApiKey: ApiKey | null = !apiKey ? null : { ...apiKey, apps };
+    const parsedApiKey: ApiKey | null = !apiKey
+      ? null
+      : { ...apiKey, applications };
 
     await this.cacheService.set(cacheKey, parsedApiKey, ms('5m'));
     return parsedApiKey;
@@ -196,7 +200,7 @@ export default class ApiService {
 
   public async createKey(
     user: User,
-    options: { expiresDays?: number; apps: string[] },
+    options: { expiresDays?: number; applications: string[] },
   ): Promise<ApiKey> {
     const apiKey = `sk-${rs({
       length: 29,
@@ -221,7 +225,7 @@ export default class ApiService {
         expires: options.expiresDays
           ? moment(new Date()).add(options.expiresDays, 'days').toDate()
           : undefined,
-        apps: options.apps,
+        applications: options.applications,
       },
     });
 
@@ -235,7 +239,7 @@ export default class ApiService {
       Partial<{
         expired: boolean;
         enable: boolean;
-        apps: string[];
+        applications: string[];
       }>,
   ): Promise<ApiKey[]> {
     const { revalidate, ...p } = payload;
@@ -247,7 +251,7 @@ export default class ApiService {
       p.updatedAtTo,
       p.expired,
       p.enable,
-      p.apps?.join('.'),
+      p.applications?.join('.'),
       p.skip,
       p.take,
       p.order,
@@ -266,7 +270,7 @@ export default class ApiService {
           gte: p.updatedAtFrom ? moment(p.updatedAtFrom).toDate() : undefined,
           lte: p.updatedAtTo ? moment(p.updatedAtTo).toDate() : undefined,
         },
-        apps: p.apps ? { hasSome: p.apps } : undefined,
+        applications: p.applications ? { hasSome: p.applications } : undefined,
         enable: p.enable,
         expires: !p.expired
           ? undefined
@@ -381,8 +385,8 @@ export default class ApiService {
       };
     }
 
-    const urls = api.apps
-      .map((app) => app.urls.map((url) => new URL(url)))
+    const urls = api.applications
+      .map((app) => app.origins.map((origin) => new URL(origin)))
       .flat(1);
 
     if (urls.every((url) => origin !== url.origin)) {

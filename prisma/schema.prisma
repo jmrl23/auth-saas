@@ -57,9 +57,9 @@ model ApiKey {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user   User     @relation(fields: [userId], references: [id])
-  userId String
-  apps   String[]
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  applications String[]
 
   apiKey  String    @unique
   expires DateTime?
@@ -74,6 +74,6 @@ model ApiApplication {
   author   User   @relation(fields: [authorId], references: [id])
   authorId String
 
-  name String   @unique
-  urls String[]
+  name    String   @unique
+  origins String[]
 }
