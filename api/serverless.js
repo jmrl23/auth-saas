@@ -1,8 +1,4 @@
-const fastify = require('fastify');
-
-const app = fastify();
-
-app.register(require('../build/plugins/app.plugin'));
+const app = require('../build/app');
 
 module.exports = async function serverless(request, response) {
   await app.ready();
