@@ -15,7 +15,7 @@ export default class ApiService {
 
     if (!ref) throw new Unauthorized('Invalid API key');
 
-    if (ref.enable) throw new Forbidden('API key disabled');
+    if (!ref.enable) throw new Forbidden('API key disabled');
 
     if (ref.expires && ref.expires <= new Date()) {
       throw new Forbidden('API key expired');
