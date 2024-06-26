@@ -11,6 +11,7 @@ export declare global {
         username: true;
         emails: true;
         information: true;
+        enable: true;
       };
     }> {
     password?: string;

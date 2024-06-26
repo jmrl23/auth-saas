@@ -109,6 +109,7 @@ export default class UserService {
         role: true,
         emails: true,
         information: true,
+        enable: true,
       },
     });
 
