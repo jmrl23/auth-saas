@@ -1,5 +1,11 @@
 import { type UserInformation, UserRole } from '@prisma/client';
-import { BadRequest, Conflict, NotFound, Unauthorized } from 'http-errors';
+import {
+  BadRequest,
+  Conflict,
+  NotFound,
+  Unauthorized,
+  Forbidden,
+} from 'http-errors';
 import jwt from 'jsonwebtoken';
 import ms from 'ms';
 import crypto from 'node:crypto';
@@ -166,6 +172,10 @@ export default class UserService {
     currentPassword: string,
     newPassword: string,
   ): Promise<User> {
+    if (user.username === 'master') {
+      throw new Forbidden('Forbidden operation for master account');
+    }
+
     const _user = (await this.getUserById(user.id, { includePassword: true }))!;
 
     if (user.password !== this.hashPassword(currentPassword, _user.salt!)) {
@@ -193,6 +203,10 @@ export default class UserService {
       Omit<UserInformation, 'id' | 'createdAt' | 'updatedAt'>
     >,
   ): Promise<User> {
+    if (user.username === 'master') {
+      throw new Forbidden('Forbidden operation for master account');
+    }
+
     await prismaClient.user.update({
       where: {
         id: user.id,
@@ -211,6 +225,10 @@ export default class UserService {
   }
 
   public async addUserEmail(user: User, email: string): Promise<User> {
+    if (user.username === 'master') {
+      throw new Forbidden('Forbidden operation for master account');
+    }
+
     email = email.toLowerCase();
 
     const existingEmail = await prismaClient.userEmail.count({
@@ -241,6 +259,7 @@ export default class UserService {
   public async logoutByToken(token: string): Promise<User | null> {
     const user = await this.getUserByToken(token);
     const key = `session:${token}`;
+
     await this.cacheService.del(key);
     return user;
   }
@@ -249,6 +268,10 @@ export default class UserService {
     user: User,
     emailId: string,
   ): Promise<string> {
+    if (user.username === 'master') {
+      throw new Forbidden('Forbidden operation for master account');
+    }
+
     const email = user.emails.find((email) => email.id === emailId);
     if (!email) throw new NotFound('Email not found');
     if (email.verified) throw new BadRequest('Email already verified');
@@ -294,8 +317,10 @@ export default class UserService {
 
   public async setUserPrimaryEmail(user: User, id: string): Promise<User> {
     const email = user.emails.find((email) => email.id === id);
+
     if (!email) throw new NotFound('Email not found');
     if (email.primary) throw new BadRequest('Email is already used as primary');
+
     await prismaClient.userEmail.updateMany({
       where: {
         userId: user.id,
@@ -313,11 +338,16 @@ export default class UserService {
         primary: true,
       },
     });
+
     const updatedUser = await this.getUserById(user.id, { revalidate: true });
     return updatedUser!;
   }
 
   public async createUserEmail(user: User, email: string): Promise<User> {
+    if (user.username === 'master') {
+      throw new Forbidden('Forbidden operation for master account');
+    }
+
     email = email.toLowerCase();
 
     if (user.emails.some((email) => !email.verified)) {
@@ -367,8 +397,8 @@ export default class UserService {
     const token = jwt.sign({ id: user.id }, JWT_SECRET, {
       expiresIn,
     });
-    await this.cacheService.set(`session:${token}`, user.id, ms(expiresIn));
 
+    await this.cacheService.set(`session:${token}`, user.id, ms(expiresIn));
     return token;
   }
 
