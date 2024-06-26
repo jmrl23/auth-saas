@@ -10,11 +10,13 @@ import {
   emailSetPrimarySchema,
   emailVerifySchema,
 } from '../../schemas/user/email.schema';
+import forbidMaster from '../../handlers/forbid-master';
 
 export const prefix = '/user/email';
 
 export default asRoute(async function userEmailRoute(app) {
   app
+
     .route({
       method: 'POST',
       url: '/create',
@@ -33,7 +35,7 @@ export default asRoute(async function userEmailRoute(app) {
           default: errorSchema,
         },
       },
-      preHandler: [userAuthorization('ALL')],
+      preHandler: [forbidMaster, userAuthorization('ALL')],
       async handler(request) {
         const { email } = request.body as FromSchema<typeof emailCreateSchema>;
         await this.userService.email.createEmail(request.user!, email);
@@ -63,7 +65,7 @@ export default asRoute(async function userEmailRoute(app) {
           default: errorSchema,
         },
       },
-      preHandler: [userAuthorization('ALL')],
+      preHandler: [forbidMaster, userAuthorization('ALL')],
       async handler(request) {
         const { id } = request.params as FromSchema<
           typeof emailSendVerifyOtpSchema
@@ -134,7 +136,7 @@ export default asRoute(async function userEmailRoute(app) {
           default: errorSchema,
         },
       },
-      preHandler: [userAuthorization('ALL')],
+      preHandler: [forbidMaster, userAuthorization('ALL')],
       async handler(request) {
         const { id } = request.body as FromSchema<typeof emailSetPrimarySchema>;
         await this.userService.email.setPrimaryEmail(request.user!, id);
@@ -159,7 +161,7 @@ export default asRoute(async function userEmailRoute(app) {
           default: errorSchema,
         },
       },
-      preHandler: [userAuthorization('ALL')],
+      preHandler: [forbidMaster, userAuthorization('ALL')],
       async handler(request) {
         const { id } = request.params as FromSchema<typeof emailDeleteSchema>;
         await this.userService.email.deleteEmail(request.user!, id);

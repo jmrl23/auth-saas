@@ -4,6 +4,7 @@ import userAuthorization from '../../handlers/user-authorization';
 import { asRoute } from '../../lib/util/typings';
 import { errorSchema, userInfoSchema } from '../../schemas/response.schema';
 import { infoUpdateSchema } from '../../schemas/user/info.schema';
+import forbidMaster from '../../handlers/forbid-master';
 
 export const prefix = '/user/info';
 
@@ -26,7 +27,7 @@ export default asRoute(async function userInfoRoute(app) {
         default: errorSchema,
       },
     },
-    preHandler: [userAuthorization('ALL')],
+    preHandler: [forbidMaster, userAuthorization('ALL')],
     async handler(request) {
       const payload = request.body as FromSchema<typeof infoUpdateSchema>;
       const user = await this.userService.info.updateInfo(

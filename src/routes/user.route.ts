@@ -15,6 +15,7 @@ import {
   userToggleSchema,
   userPasswordUpdateSchema,
 } from '../schemas/user.schema';
+import forbidMaster from '../handlers/forbid-master';
 
 export const prefix = '/user';
 
@@ -123,7 +124,7 @@ export default asRoute(async function userRoute(app) {
           timeWindow: ms('5m'),
         },
       },
-      preHandler: [userAuthorization('ALL')],
+      preHandler: [forbidMaster, userAuthorization('ALL')],
       schema: {
         description: 'Update user password',
         tags: ['user.default', 'update'],
@@ -164,7 +165,7 @@ export default asRoute(async function userRoute(app) {
           default: errorSchema,
         },
       },
-      preHandler: [userAuthorization(UserRole.ADMIN)],
+      preHandler: [forbidMaster, userAuthorization(UserRole.ADMIN)],
       async handler(request) {
         const { id, enable } = request.body as FromSchema<
           typeof userToggleSchema
