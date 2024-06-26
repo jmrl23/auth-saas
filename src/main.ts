@@ -15,7 +15,7 @@ async function main() {
       port,
     },
     function (error) {
-      if (error) return logger.error(error.message);
+      if (error) return logger.error(error?.stack ?? error.message);
 
       logger.info(`Running on port ${c.bold(c.yellow(port))}`);
     },

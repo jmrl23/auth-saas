@@ -4,20 +4,16 @@ import type { FromSchema } from 'json-schema-to-ts';
 import ms from 'ms';
 import userAuthorization from '../handlers/user-authorization';
 import { asRoute } from '../lib/util/typings';
-import { errorResponseSchema } from '../schemas/error.schema';
 import {
-  userCreateEmailSchema,
-  userDeleteEmailSchema,
-  userEmailUpdatePrimarySchema,
-  userEnableToggleSchema,
+  errorSchema,
+  userSchema,
+  userTokenSchema,
+} from '../schemas/response.schema';
+import {
   userLoginSchema,
   userRegisterSchema,
-  userResponseSchema,
-  userSendEmailVerificationSchema,
-  userTokenResponseSchema,
-  userUpdateInformationSchema,
-  userUpdatePasswordSchema,
-  userVerifyEmailSchema,
+  userToggleSchema,
+  userPasswordUpdateSchema,
 } from '../schemas/user.schema';
 
 export const prefix = '/user';
@@ -31,11 +27,11 @@ export default asRoute(async function userRoute(app) {
       schema: {
         description: 'Register user',
         security: [],
-        tags: ['user', 'create'],
+        tags: ['user.default', 'create'],
         body: userRegisterSchema,
         response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
+          200: userSchema,
+          default: errorSchema,
         },
       },
       config: {
@@ -71,11 +67,11 @@ export default asRoute(async function userRoute(app) {
       schema: {
         description: 'Login user',
         security: [],
-        tags: ['user', 'create'],
+        tags: ['user.default', 'create'],
         body: userLoginSchema,
         response: {
-          200: userTokenResponseSchema,
-          default: errorResponseSchema,
+          200: userTokenSchema,
+          default: errorSchema,
         },
       },
       config: {
@@ -99,111 +95,19 @@ export default asRoute(async function userRoute(app) {
     })
 
     .route({
-      method: 'POST',
-      url: '/email/create',
-      config: {
-        rateLimit: {
-          max: 5,
-          timeWindow: ms('5m'),
-        },
-      },
-      schema: {
-        description: 'Create user email',
-        tags: ['user', 'create'],
-        body: userCreateEmailSchema,
-        response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      preHandler: [userAuthorization('ALL')],
-      async handler(request) {
-        const { email } = request.body as FromSchema<
-          typeof userCreateEmailSchema
-        >;
-        const user = await this.userService.createUserEmail(
-          request.user!,
-          email,
-        );
-        return {
-          user,
-        };
-      },
-    })
-
-    .route({
       method: 'GET',
       url: '/session',
       schema: {
         description: 'Get current session',
-        tags: ['user', 'read'],
+        tags: ['user.default', 'read'],
         response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
+          200: userSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const user = request.user ?? null;
-        return {
-          user,
-        };
-      },
-    })
-
-    .route({
-      method: 'GET',
-      url: '/email/:id/verify',
-      config: {
-        rateLimit: {
-          max: 1,
-          timeWindow: ms('30s'),
-        },
-      },
-      schema: {
-        description: 'Send email verification otp',
-        tags: ['user', 'read'],
-        params: userSendEmailVerificationSchema,
-        response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      preHandler: [userAuthorization('ALL')],
-      async handler(request) {
-        const { id } = request.params as FromSchema<
-          typeof userSendEmailVerificationSchema
-        >;
-        await this.userService.sendUserEmailVerification(request.user!, id);
-        return {
-          user: request.user,
-        };
-      },
-    })
-
-    .route({
-      method: 'GET',
-      url: '/email/:email/:otp/verify',
-      config: {
-        rateLimit: {
-          max: 1,
-          timeWindow: ms('5m'),
-        },
-      },
-      schema: {
-        description: 'Verify email',
-        tags: ['user', 'read'],
-        params: userVerifyEmailSchema,
-        response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      async handler(request) {
-        const { email, otp } = request.params as FromSchema<
-          typeof userVerifyEmailSchema
-        >;
-        const user = await this.userService.verifyUserEmail(email, otp);
         return {
           user,
         };
@@ -222,87 +126,21 @@ export default asRoute(async function userRoute(app) {
       preHandler: [userAuthorization('ALL')],
       schema: {
         description: 'Update user password',
-        tags: ['user', 'update'],
-        body: userUpdatePasswordSchema,
+        tags: ['user.default', 'update'],
+        body: userPasswordUpdateSchema,
         response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
+          200: userSchema,
+          default: errorSchema,
         },
       },
       async handler(request) {
         const { currentPassword, newPassword } = request.body as FromSchema<
-          typeof userUpdatePasswordSchema
+          typeof userPasswordUpdateSchema
         >;
         const user = await this.userService.updateUserPassword(
           request.user!,
           currentPassword,
           newPassword,
-        );
-        return {
-          user,
-        };
-      },
-    })
-
-    .route({
-      method: 'PATCH',
-      url: '/information/update',
-      config: {
-        rateLimit: {
-          max: 5,
-          timeWindow: ms('5m'),
-        },
-      },
-      schema: {
-        description: 'Update user information',
-        tags: ['user', 'update'],
-        body: userUpdateInformationSchema,
-        response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      preHandler: [userAuthorization('ALL')],
-      async handler(request) {
-        const information = request.body as FromSchema<
-          typeof userUpdateInformationSchema
-        >;
-        const user = await this.userService.updateUserInformation(
-          request.user!,
-          information,
-        );
-        return {
-          user,
-        };
-      },
-    })
-
-    .route({
-      method: 'PATCH',
-      url: '/email/primary/set',
-      config: {
-        rateLimit: {
-          max: 5,
-          timeWindow: ms('5m'),
-        },
-      },
-      schema: {
-        description: "Set user's primary email",
-        tags: ['user', 'update'],
-        body: userEmailUpdatePrimarySchema,
-        response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      preHandler: [userAuthorization('ALL')],
-      async handler(request) {
-        const { id } = request.body as FromSchema<
-          typeof userEmailUpdatePrimarySchema
-        >;
-        const user = await this.userService.setUserPrimaryEmail(
-          request.user!,
-          id,
         );
         return {
           user,
@@ -321,17 +159,17 @@ export default asRoute(async function userRoute(app) {
       },
       schema: {
         description: 'Enable/ disable user',
-        tags: ['user', 'update'],
-        body: userEnableToggleSchema,
+        tags: ['user.default', 'update'],
+        body: userToggleSchema,
         response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
+          200: userSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
       async handler(request) {
         const { id, enable } = request.body as FromSchema<
-          typeof userEnableToggleSchema
+          typeof userToggleSchema
         >;
         const user = await this.userService.getUserById(id);
         if (!user) throw new NotFound('User not found');
@@ -347,38 +185,14 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'DELETE',
-      url: '/email/:id/delete',
-      schema: {
-        description: 'Delete user email',
-        tags: ['user', 'delete'],
-        params: userDeleteEmailSchema,
-        response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      preHandler: [userAuthorization('ALL')],
-      async handler(request) {
-        const { id } = request.params as FromSchema<
-          typeof userDeleteEmailSchema
-        >;
-        const user = await this.userService.deleteUserEmail(request.user!, id);
-        return {
-          user,
-        };
-      },
-    })
-
-    .route({
-      method: 'DELETE',
       url: '/logout',
       preHandler: [userAuthorization('ALL')],
       schema: {
         description: 'Logout',
-        tags: ['user', 'delete'],
+        tags: ['user.default', 'delete'],
         response: {
-          200: userResponseSchema,
-          default: errorResponseSchema,
+          200: userSchema,
+          default: errorSchema,
         },
       },
       async handler(request) {

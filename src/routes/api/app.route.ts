@@ -10,7 +10,7 @@ import {
   appResponseSchema,
   appSetOriginsSchema,
 } from '../../schemas/api/app.schema';
-import { errorResponseSchema } from '../../schemas/error.schema';
+import { errorSchema } from '../../schemas/response.schema';
 
 export const prefix = '/api/app';
 
@@ -22,11 +22,11 @@ export default asRoute(async function apiAppRoute(app) {
       url: '/create',
       schema: {
         description: appCreateSchema.description,
-        tags: ['api', 'create'],
+        tags: ['api.app', 'create'],
         body: appCreateSchema,
         response: {
           200: appResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
@@ -50,11 +50,11 @@ export default asRoute(async function apiAppRoute(app) {
       url: '/list',
       schema: {
         description: appGetListSchema.description,
-        tags: ['api', 'read'],
+        tags: ['api.app', 'read'],
         querystring: appGetListSchema,
         response: {
           200: appListResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization('ALL')],
@@ -72,11 +72,11 @@ export default asRoute(async function apiAppRoute(app) {
       url: '/origins/set',
       schema: {
         description: appSetOriginsSchema.description,
-        tags: ['api', 'update'],
+        tags: ['api.app', 'update'],
         body: appSetOriginsSchema,
         response: {
           200: appResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
@@ -99,11 +99,11 @@ export default asRoute(async function apiAppRoute(app) {
       url: '/:id/delete',
       schema: {
         description: appDeleteSchema.description,
-        tags: ['api', 'delete'],
+        tags: ['api.app', 'delete'],
         params: appDeleteSchema,
         response: {
           200: appResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],

@@ -1,111 +1,7 @@
 import { UserRole, type $Enums } from '@prisma/client';
 import { asJsonSchema } from '../lib/util/typings';
 
-export const userWithPasswordSchema = asJsonSchema({
-  type: 'object',
-  description: 'User',
-  additionalProperties: false,
-  required: [
-    'id',
-    'createdAt',
-    'updatedAt',
-    'role',
-    'username',
-    'emails',
-    'information',
-  ],
-  properties: {
-    id: {
-      type: 'string',
-      format: 'uuid',
-    },
-    createdAt: {
-      type: 'string',
-      format: 'date-time',
-    },
-    updatedAt: {
-      type: 'string',
-      format: 'date-time',
-    },
-    role: {
-      type: 'string',
-      enum: Object.keys(UserRole) as unknown as $Enums.UserRole[],
-    },
-    username: {
-      type: 'string',
-      examples: ['user1'],
-    },
-    emails: {
-      type: 'array',
-      additionalItems: false,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: [
-          'id',
-          'createdAt',
-          'updatedAt',
-          'userId',
-          'email',
-          'verified',
-          'primary',
-        ],
-        properties: {
-          id: {
-            type: 'string',
-            format: 'uuid',
-          },
-          createdAt: {
-            type: 'string',
-            format: 'date-time',
-          },
-          updatedAt: {
-            type: 'string',
-            format: 'date-time',
-          },
-          userId: {
-            type: 'string',
-            format: 'uuid',
-          },
-          email: {
-            type: 'string',
-            format: 'email',
-            examples: ['user1@example.com'],
-          },
-          verified: {
-            type: 'boolean',
-            default: false,
-          },
-          primary: {
-            type: 'boolean',
-            default: false,
-          },
-        },
-      },
-    },
-    information: {
-      type: 'object',
-      additionalProperties: false,
-      required: [],
-      properties: {
-        displayName: {
-          type: 'string',
-          examples: ['John Doe'],
-        },
-      },
-    },
-    password: {
-      type: 'string',
-      examples: ['password1'],
-    },
-    salt: {
-      type: 'string',
-      examples: ['some-random-string'],
-    },
-  },
-} as const);
-
-export const userWithoutPasswordSchema = asJsonSchema({
+export const userSchema = asJsonSchema({
   type: 'object',
   description: 'User without password',
   additionalProperties: false,
@@ -254,7 +150,7 @@ export const userLoginSchema = asJsonSchema({
   },
 } as const);
 
-export const userUpdatePasswordSchema = asJsonSchema({
+export const userPasswordUpdateSchema = asJsonSchema({
   type: 'object',
   description: 'Update user password',
   additionalProperties: false,
@@ -275,91 +171,7 @@ export const userUpdatePasswordSchema = asJsonSchema({
   },
 } as const);
 
-export const userUpdateInformationSchema = asJsonSchema({
-  type: 'object',
-  description: 'Update user information',
-  additionalProperties: false,
-  required: [],
-  properties: {
-    displayName: {
-      type: 'string',
-      minLength: 1,
-      examples: ['Johnny Doe'],
-    },
-  },
-} as const);
-
-export const userSendEmailVerificationSchema = asJsonSchema({
-  type: 'object',
-  description: 'Send email verification',
-  additionalProperties: false,
-  required: ['id'],
-  properties: {
-    id: {
-      type: 'string',
-      format: 'uuid',
-    },
-  },
-} as const);
-
-export const userVerifyEmailSchema = asJsonSchema({
-  type: 'object',
-  description: 'Verify user email',
-  additionalProperties: false,
-  required: ['email', 'otp'],
-  properties: {
-    email: {
-      type: 'string',
-      format: 'email',
-    },
-    otp: {
-      type: 'string',
-      minLength: 6,
-      maxLength: 6,
-    },
-  },
-} as const);
-
-export const userEmailUpdatePrimarySchema = asJsonSchema({
-  type: 'object',
-  description: "Set user's primary email",
-  additionalProperties: false,
-  required: ['id'],
-  properties: {
-    id: {
-      type: 'string',
-      format: 'uuid',
-    },
-  },
-} as const);
-
-export const userCreateEmailSchema = asJsonSchema({
-  type: 'object',
-  description: 'Create user email',
-  additionalProperties: false,
-  required: ['email'],
-  properties: {
-    email: {
-      type: 'string',
-      format: 'email',
-    },
-  },
-} as const);
-
-export const userDeleteEmailSchema = asJsonSchema({
-  type: 'object',
-  description: 'Delete user email',
-  additionalProperties: false,
-  required: ['id'],
-  properties: {
-    id: {
-      type: 'string',
-      format: 'uuid',
-    },
-  },
-} as const);
-
-export const userEnableToggleSchema = asJsonSchema({
+export const userToggleSchema = asJsonSchema({
   type: 'object',
   description: 'Toggle user enable',
   additionalProperties: false,
@@ -372,29 +184,6 @@ export const userEnableToggleSchema = asJsonSchema({
     enable: {
       type: 'boolean',
       examples: [true],
-    },
-  },
-} as const);
-
-export const userResponseSchema = asJsonSchema({
-  type: 'object',
-  description: 'User',
-  additionalProperties: false,
-  required: ['user'],
-  properties: {
-    user: { ...userWithoutPasswordSchema, nullable: true },
-  },
-} as const);
-
-export const userTokenResponseSchema = asJsonSchema({
-  type: 'object',
-  description: 'User session token',
-  additionalProperties: false,
-  required: ['token'],
-  properties: {
-    token: {
-      type: 'string',
-      examples: ['<jwt>'],
     },
   },
 } as const);

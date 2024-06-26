@@ -9,22 +9,23 @@ import {
   keyResponseSchema,
   keyToggleSchema,
 } from '../../schemas/api/key.schema';
-import { errorResponseSchema } from '../../schemas/error.schema';
+import { errorSchema } from '../../schemas/response.schema';
 
 export const prefix = '/api/key';
 
 export default asRoute(async function apiKeyRoute(app) {
   app
+
     .route({
       method: 'POST',
       url: '/create',
       schema: {
         description: 'Create key',
-        tags: ['api', 'create'],
+        tags: ['api.key', 'create'],
         body: keyCreateSchema,
         response: {
           200: keyResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization('ALL')],
@@ -42,11 +43,11 @@ export default asRoute(async function apiKeyRoute(app) {
       url: '/list',
       schema: {
         description: 'Get key list',
-        tags: ['api', 'read'],
+        tags: ['api.key', 'read'],
         querystring: keyListSchema,
         response: {
           200: keyListResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization('ALL')],
@@ -67,11 +68,11 @@ export default asRoute(async function apiKeyRoute(app) {
       url: '/toggle',
       schema: {
         description: 'Toggle key',
-        tags: ['api', 'update'],
+        tags: ['api.key', 'update'],
         body: keyToggleSchema,
         response: {
           200: keyResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization('ALL')],
@@ -95,11 +96,11 @@ export default asRoute(async function apiKeyRoute(app) {
       url: '/:id/delete',
       schema: {
         description: 'Delete key',
-        tags: ['api', 'delete'],
+        tags: ['api.key', 'delete'],
         body: keyDeleteSchema,
         response: {
           200: keyResponseSchema,
-          default: errorResponseSchema,
+          default: errorSchema,
         },
       },
       preHandler: [userAuthorization('ALL')],
