@@ -2,7 +2,7 @@ import type { FromSchema } from 'json-schema-to-ts';
 import ms from 'ms';
 import userAuthorization from '../../handlers/user-authorization';
 import { asRoute } from '../../lib/util/typings';
-import { errorSchema, userSchema } from '../../schemas/response.schema';
+import { errorSchema, userInfoSchema } from '../../schemas/response.schema';
 import { infoUpdateSchema } from '../../schemas/user/info.schema';
 
 export const prefix = '/user/info';
@@ -22,16 +22,16 @@ export default asRoute(async function userInfoRoute(app) {
       tags: ['user', 'update', 'user.info'],
       body: infoUpdateSchema,
       response: {
-        200: userSchema,
+        200: userInfoSchema,
         default: errorSchema,
       },
     },
     preHandler: [userAuthorization('ALL')],
     async handler(request) {
-      const information = request.body as FromSchema<typeof infoUpdateSchema>;
-      const user = await this.userService.updateUserInformation(
+      const payload = request.body as FromSchema<typeof infoUpdateSchema>;
+      const user = await this.userService.info.updateInfo(
         request.user!,
-        information,
+        payload,
       );
       return {
         user,

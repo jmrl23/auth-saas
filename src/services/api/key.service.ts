@@ -1,4 +1,4 @@
-import { NotFound, Forbidden } from 'http-errors';
+import { Forbidden, NotFound } from 'http-errors';
 import moment from 'moment';
 import ms from 'ms';
 import rs from 'random-string';
@@ -6,9 +6,9 @@ import prismaClient from '../../lib/prismaClient';
 import type CacheService from '../cache.service';
 import type AppService from './app.service';
 
-export default class KeyService {
+export default class ApiKeyService {
   constructor(
-    private cacheService: CacheService,
+    private readonly cacheService: CacheService,
     private readonly appService: AppService,
   ) {}
 
@@ -54,7 +54,7 @@ export default class KeyService {
     id: string,
     options: { revalidate?: boolean } = {},
   ): Promise<ApiKey | null> {
-    const cacheKey = `key:${id}`;
+    const cacheKey = `key:ref:${id}`;
     const cachedRef = await this.cacheService.get<ApiKey>(cacheKey);
 
     if (options.revalidate === true) {
@@ -116,7 +116,7 @@ export default class KeyService {
     key: string,
     options: { revalidate?: boolean } = {},
   ): Promise<ApiKey | null> {
-    const cacheKey = `key:key:${key}`;
+    const cacheKey = `key:[ref:key]:${key}`;
 
     if (options.revalidate === true) {
       await this.cacheService.del(cacheKey);

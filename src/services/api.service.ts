@@ -1,11 +1,11 @@
-import type ApplicationService from './api/app.service';
-import type KeyService from './api/key.service';
-import { Unauthorized, Forbidden } from 'http-errors';
+import { Forbidden, Unauthorized } from 'http-errors';
+import type ApiAppService from './api/app.service';
+import type ApiKeyService from './api/key.service';
 
 export default class ApiService {
   constructor(
-    public readonly app: ApplicationService,
-    public readonly key: KeyService,
+    public readonly app: ApiAppService,
+    public readonly key: ApiKeyService,
   ) {}
 
   public async validateRequest(key?: string, origin?: string): Promise<void> {

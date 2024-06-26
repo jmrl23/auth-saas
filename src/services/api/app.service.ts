@@ -4,7 +4,7 @@ import ms from 'ms';
 import prismaClient from '../../lib/prismaClient';
 import type CacheService from '../cache.service';
 
-export default class AppService {
+export default class ApiAppService {
   constructor(private readonly cacheService: CacheService) {}
 
   public async createApp(
@@ -36,7 +36,7 @@ export default class AppService {
     id: string,
     options: OptionsWithRevalidate = {},
   ): Promise<ApiApp | null> {
-    const cacheKey = `application:${id}`;
+    const cacheKey = `application:[ref:id]:${id}`;
 
     if (options.revalidate === true) await this.cacheService.del(cacheKey);
 

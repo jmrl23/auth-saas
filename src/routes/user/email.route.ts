@@ -36,10 +36,10 @@ export default asRoute(async function userEmailRoute(app) {
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const { email } = request.body as FromSchema<typeof emailCreateSchema>;
-        const user = await this.userService.createUserEmail(
-          request.user!,
-          email,
-        );
+        await this.userService.email.createEmail(request.user!, email);
+        const user = await this.userService.getUserById(request.user!.id, {
+          revalidate: true,
+        });
         return {
           user,
         };
@@ -68,7 +68,7 @@ export default asRoute(async function userEmailRoute(app) {
         const { id } = request.params as FromSchema<
           typeof emailSendVerifyOtpSchema
         >;
-        await this.userService.sendUserEmailVerification(request.user!, id);
+        await this.userService.email.sendVerificationOtp(request.user!, id);
         return {
           user: request.user,
         };
@@ -88,7 +88,17 @@ export default asRoute(async function userEmailRoute(app) {
         tags: ['user.email', 'read'],
         params: emailVerifySchema,
         response: {
-          200: userSchema,
+          200: {
+            type: 'boolean',
+            additionalProperties: false,
+            required: ['verified'],
+            properties: {
+              verified: {
+                type: 'boolean',
+                examples: [true],
+              },
+            },
+          },
           default: errorSchema,
         },
       },
@@ -96,9 +106,13 @@ export default asRoute(async function userEmailRoute(app) {
         const { email, otp } = request.params as FromSchema<
           typeof emailVerifySchema
         >;
-        const user = await this.userService.verifyUserEmail(email, otp);
+        await this.userService.email.verifyEmailOtp(email, otp);
+        const verified = await this.userService.getUserByIdOrThrow(
+          request.user?.id!,
+          { revalidate: true },
+        );
         return {
-          user,
+          verified,
         };
       },
     })
@@ -123,9 +137,10 @@ export default asRoute(async function userEmailRoute(app) {
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const { id } = request.body as FromSchema<typeof emailSetPrimarySchema>;
-        const user = await this.userService.setUserPrimaryEmail(
-          request.user!,
-          id,
+        await this.userService.email.setPrimaryEmail(request.user!, id);
+        const user = await this.userService.getUserByIdOrThrow(
+          request.user!.id,
+          { revalidate: true },
         );
         return {
           user,
@@ -147,7 +162,11 @@ export default asRoute(async function userEmailRoute(app) {
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const { id } = request.params as FromSchema<typeof emailDeleteSchema>;
-        const user = await this.userService.deleteUserEmail(request.user!, id);
+        await this.userService.email.deleteEmail(request.user!, id);
+        const user = await this.userService.getUserByIdOrThrow(
+          request.user!.id,
+          { revalidate: true },
+        );
         return {
           user,
         };

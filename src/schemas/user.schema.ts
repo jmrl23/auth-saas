@@ -154,19 +154,13 @@ export const userPasswordUpdateSchema = asJsonSchema({
   type: 'object',
   description: 'Update user password',
   additionalProperties: false,
-  required: ['currentPassword', 'newPassword'],
+  required: ['password'],
   properties: {
-    currentPassword: {
+    password: {
       type: 'string',
       format: 'password',
       minLength: 6,
       examples: ['password1'],
-    },
-    newPassword: {
-      type: 'string',
-      format: 'password',
-      minLength: 6,
-      examples: ['password01'],
     },
   },
 } as const);

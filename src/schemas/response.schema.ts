@@ -1,5 +1,6 @@
 import { asJsonSchema } from '../lib/util/typings';
 import { userSchema as user } from './user.schema';
+import { infoSchema as userInfo } from './user/info.schema';
 
 export const errorSchema = asJsonSchema({
   type: 'object',
@@ -44,3 +45,13 @@ export const userTokenSchema = asJsonSchema({
     },
   },
 } as const);
+
+export const userInfoSchema = asJsonSchema({
+  type: 'object',
+  description: 'User info',
+  additionalProperties: false,
+  required: ['information'],
+  properties: {
+    information: { ...userInfo, nullable: true },
+  },
+});

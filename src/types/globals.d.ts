@@ -9,14 +9,32 @@ export declare global {
         updatedAt: true;
         role: true;
         username: true;
-        emails: true;
-        information: true;
         enable: true;
       };
     }> {
     password?: string;
     salt?: string;
+    information: UserInfo;
+    emails: UserEmail[];
   }
+
+  interface UserInfo
+    extends Prisma.UserInformationGetPayload<{
+      select: {
+        id: true;
+        displayName: true;
+      };
+    }> {}
+
+  interface UserEmail
+    extends Prisma.UserEmailGetPayload<{
+      select: {
+        id: true;
+        email: true;
+        verified: true;
+        primary: true;
+      };
+    }> {}
 
   export interface ApiApp
     extends Prisma.ApiApplicationGetPayload<{

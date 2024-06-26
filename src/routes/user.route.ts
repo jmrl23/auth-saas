@@ -1,5 +1,5 @@
 import { UserRole } from '@prisma/client';
-import { Forbidden, NotFound } from 'http-errors';
+import { Forbidden } from 'http-errors';
 import type { FromSchema } from 'json-schema-to-ts';
 import ms from 'ms';
 import userAuthorization from '../handlers/user-authorization';
@@ -134,14 +134,12 @@ export default asRoute(async function userRoute(app) {
         },
       },
       async handler(request) {
-        const { currentPassword, newPassword } = request.body as FromSchema<
+        const { password } = request.body as FromSchema<
           typeof userPasswordUpdateSchema
         >;
-        const user = await this.userService.updateUserPassword(
-          request.user!,
-          currentPassword,
-          newPassword,
-        );
+        const user = await this.userService.updateUser(request.user!, {
+          password,
+        });
         return {
           user,
         };
@@ -171,14 +169,12 @@ export default asRoute(async function userRoute(app) {
         const { id, enable } = request.body as FromSchema<
           typeof userToggleSchema
         >;
-        const user = await this.userService.getUserById(id);
-        if (!user) throw new NotFound('User not found');
-        const updatedUser = await this.userService.toggleUserEnable(
-          user,
-          enable,
-        );
+        const ref = await this.userService.getUserByIdOrThrow(id);
+        const user = await this.userService.updateUser(ref, {
+          enable: enable === undefined ? !ref.enable : enable,
+        });
         return {
-          user: updatedUser,
+          user,
         };
       },
     })
@@ -197,7 +193,8 @@ export default asRoute(async function userRoute(app) {
       },
       async handler(request) {
         const [, token] = request.headers.authorization?.split(' ') ?? [];
-        const user = await this.userService.logoutByToken(token);
+        const user = request.user;
+        await this.userService.session.deleteSession(token);
         return {
           user,
         };
