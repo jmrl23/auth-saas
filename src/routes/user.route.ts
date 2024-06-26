@@ -1,5 +1,5 @@
 import { UserRole } from '@prisma/client';
-import { Unauthorized } from 'http-errors';
+import { Forbidden, NotFound } from 'http-errors';
 import type { FromSchema } from 'json-schema-to-ts';
 import ms from 'ms';
 import userAuthorization from '../handlers/user-authorization';
@@ -9,6 +9,7 @@ import {
   userCreateEmailSchema,
   userDeleteEmailSchema,
   userEmailUpdatePrimarySchema,
+  userEnableToggleSchema,
   userLoginSchema,
   userRegisterSchema,
   userResponseSchema,
@@ -47,7 +48,7 @@ export default asRoute(async function userRoute(app) {
           typeof userRegisterSchema
         >;
         if (request.user?.role !== UserRole.ADMIN && role === UserRole.ADMIN) {
-          throw new Unauthorized(
+          throw new Forbidden(
             `Not authorized to create an ${UserRole.ADMIN} account`,
           );
         }
@@ -99,6 +100,12 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'POST',
       url: '/email/create',
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: ms('5m'),
+        },
+      },
       schema: {
         description: 'Create user email',
         tags: ['user', 'email', 'create'],
@@ -146,6 +153,12 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'GET',
       url: '/email/verify/:id',
+      config: {
+        rateLimit: {
+          max: 1,
+          timeWindow: ms('30s'),
+        },
+      },
       schema: {
         description: 'Send email verification otp',
         tags: ['user', 'email'],
@@ -153,12 +166,6 @@ export default asRoute(async function userRoute(app) {
         response: {
           200: userResponseSchema,
           default: errorResponseSchema,
-        },
-      },
-      config: {
-        rateLimit: {
-          max: 1,
-          timeWindow: ms('30s'),
         },
       },
       preHandler: [userAuthorization('ALL')],
@@ -176,6 +183,12 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'GET',
       url: '/email/verify/:email/:otp',
+      config: {
+        rateLimit: {
+          max: 1,
+          timeWindow: ms('5m'),
+        },
+      },
       schema: {
         description: 'Verify email',
         tags: ['user', 'email', 'update'],
@@ -266,6 +279,12 @@ export default asRoute(async function userRoute(app) {
     .route({
       method: 'PATCH',
       url: '/email/update/primary',
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: ms('5m'),
+        },
+      },
       schema: {
         description: "Set user's primary email",
         tags: ['user', 'email', 'update'],
@@ -286,6 +305,41 @@ export default asRoute(async function userRoute(app) {
         );
         return {
           user,
+        };
+      },
+    })
+
+    .route({
+      method: 'PATCH',
+      url: '/enable/toggle',
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: ms('5m'),
+        },
+      },
+      schema: {
+        description: 'Enable/ disable user',
+        tags: ['user', 'admin', 'update'],
+        body: userEnableToggleSchema,
+        response: {
+          200: userResponseSchema,
+          default: errorResponseSchema,
+        },
+      },
+      preHandler: [userAuthorization(UserRole.ADMIN)],
+      async handler(request) {
+        const { id, enable } = request.body as FromSchema<
+          typeof userEnableToggleSchema
+        >;
+        const user = await this.userService.getUserById(id);
+        if (!user) throw new NotFound('User not found');
+        const updatedUser = await this.userService.toggleUserEnable(
+          user,
+          enable,
+        );
+        return {
+          user: updatedUser,
         };
       },
     })

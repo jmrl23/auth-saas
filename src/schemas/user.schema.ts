@@ -359,6 +359,23 @@ export const userDeleteEmailSchema = asJsonSchema({
   },
 } as const);
 
+export const userEnableToggleSchema = asJsonSchema({
+  type: 'object',
+  description: 'Toggle user enable',
+  additionalProperties: false,
+  required: ['id'],
+  properties: {
+    id: {
+      type: 'string',
+      format: 'uuid',
+    },
+    enable: {
+      type: 'boolean',
+      examples: [true],
+    },
+  },
+} as const);
+
 export const userResponseSchema = asJsonSchema({
   type: 'object',
   description: 'User',

@@ -173,9 +173,7 @@ export default class UserService {
     currentPassword: string,
     newPassword: string,
   ): Promise<User> {
-    if (user.username === 'master') {
-      throw new Forbidden('Forbidden operation for master account');
-    }
+    await this.forbidOperationForMaster(user.id);
 
     const _user = (await this.getUserById(user.id, { includePassword: true }))!;
 
@@ -204,9 +202,7 @@ export default class UserService {
       Omit<UserInformation, 'id' | 'createdAt' | 'updatedAt'>
     >,
   ): Promise<User> {
-    if (user.username === 'master') {
-      throw new Forbidden('Forbidden operation for master account');
-    }
+    await this.forbidOperationForMaster(user.id);
 
     await prismaClient.user.update({
       where: {
@@ -226,9 +222,7 @@ export default class UserService {
   }
 
   public async addUserEmail(user: User, email: string): Promise<User> {
-    if (user.username === 'master') {
-      throw new Forbidden('Forbidden operation for master account');
-    }
+    await this.forbidOperationForMaster(user.id);
 
     email = email.toLowerCase();
 
@@ -269,9 +263,7 @@ export default class UserService {
     user: User,
     emailId: string,
   ): Promise<string> {
-    if (user.username === 'master') {
-      throw new Forbidden('Forbidden operation for master account');
-    }
+    await this.forbidOperationForMaster(user.id);
 
     const email = user.emails.find((email) => email.id === emailId);
     if (!email) throw new NotFound('Email not found');
@@ -345,9 +337,7 @@ export default class UserService {
   }
 
   public async createUserEmail(user: User, email: string): Promise<User> {
-    if (user.username === 'master') {
-      throw new Forbidden('Forbidden operation for master account');
-    }
+    await this.forbidOperationForMaster(user.id);
 
     email = email.toLowerCase();
 
@@ -391,6 +381,22 @@ export default class UserService {
     return updatedUser!;
   }
 
+  public async toggleUserEnable(user: User, enable?: boolean): Promise<User> {
+    await this.forbidOperationForMaster(user.id);
+
+    await prismaClient.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        enable: enable === undefined ? !user.enable : enable,
+      },
+    });
+
+    const updatedUser = await this.getUserById(user.id, { revalidate: true });
+    return updatedUser!;
+  }
+
   private async createUserSession(
     user: User,
     expiresIn: string,
@@ -401,6 +407,13 @@ export default class UserService {
 
     await this.cacheService.set(`session:${token}`, user.id, ms(expiresIn));
     return token;
+  }
+
+  private async forbidOperationForMaster(id: string): Promise<void> {
+    const user = await this.getUserById(id);
+    if (user?.username === 'master') {
+      throw new Forbidden('Forbidden operation for master account');
+    }
   }
 
   private hashPassword(password: string, salt: string): string {
