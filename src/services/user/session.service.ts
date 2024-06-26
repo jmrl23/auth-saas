@@ -14,6 +14,11 @@ export class UserSessionService {
     return token;
   }
 
+  public async getSession(token: string): Promise<string | null> {
+    const userId = await this.cacheService.get<string>(`session:${token}`);
+    return userId ?? null;
+  }
+
   public async deleteSession(token: string): Promise<void> {
     await this.cacheService.del(`session:${token}`);
   }

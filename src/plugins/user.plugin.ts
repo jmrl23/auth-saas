@@ -12,10 +12,10 @@ export default fastifyPlugin(
       if (request.user) return;
       const [scheme, token] = request.headers.authorization?.split(' ') ?? [];
       if (scheme !== 'Bearer') return;
-      const user = await this.userService.getUserByToken(token);
-      if (user) {
-        request.user = user;
-      }
+      const userId = await this.userService.session.getSession(token);
+      if (!userId) return;
+      const user = await this.userService.getUserById(userId);
+      if (user) request.user = user;
     });
   },
   {
