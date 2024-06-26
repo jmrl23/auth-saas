@@ -12,6 +12,7 @@ export default asRoute(async function apiRoute(app) {
     schema: {
       description: apiAuthSchema.description,
       tags: ['api.default', 'read'],
+      security: [],
       querystring: apiAuthSchema,
       responses: {
         default: errorSchema,
