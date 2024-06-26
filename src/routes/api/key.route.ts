@@ -22,7 +22,7 @@ export default asRoute(async function apiKeyRoute(app) {
       url: '/create',
       schema: {
         description: 'Create key',
-        tags: ['api', 'key', 'create'],
+        tags: ['api', 'create'],
         body: keyCreateSchema,
         response: {
           200: keyResponseSchema,
@@ -44,7 +44,7 @@ export default asRoute(async function apiKeyRoute(app) {
       url: '/list',
       schema: {
         description: 'Get key list',
-        tags: ['api', 'key', 'list', 'info'],
+        tags: ['api', 'read'],
         querystring: keyListSchema,
         response: {
           200: keyListResponseSchema,
@@ -66,7 +66,7 @@ export default asRoute(async function apiKeyRoute(app) {
       url: '',
       schema: {
         description: 'Get key status',
-        tags: ['api', 'key', 'info', 'auth'],
+        tags: ['api', 'read'],
         querystring: keyStatusSchema,
         response: {
           200: keyStatusResponseSchema,
@@ -85,10 +85,10 @@ export default asRoute(async function apiKeyRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update/enable',
+      url: '/toggle',
       schema: {
         description: 'Toggle key',
-        tags: ['api', 'key', 'update'],
+        tags: ['api', 'update'],
         body: keyToggleSchema,
         response: {
           200: keyResponseSchema,
@@ -113,10 +113,10 @@ export default asRoute(async function apiKeyRoute(app) {
 
     .route({
       method: 'DELETE',
-      url: '/delete/:id',
+      url: '/:id/delete',
       schema: {
         description: 'Delete key',
-        tags: ['api', 'key', 'delete'],
+        tags: ['api', 'delete'],
         body: keyDeleteSchema,
         response: {
           200: keyResponseSchema,

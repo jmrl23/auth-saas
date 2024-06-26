@@ -24,6 +24,7 @@ export const prefix = '/user';
 
 export default asRoute(async function userRoute(app) {
   app
+
     .route({
       method: 'POST',
       url: '/create',
@@ -70,7 +71,7 @@ export default asRoute(async function userRoute(app) {
       schema: {
         description: 'Login user',
         security: [],
-        tags: ['user', 'auth'],
+        tags: ['user', 'create'],
         body: userLoginSchema,
         response: {
           200: userTokenResponseSchema,
@@ -108,7 +109,7 @@ export default asRoute(async function userRoute(app) {
       },
       schema: {
         description: 'Create user email',
-        tags: ['user', 'email', 'create'],
+        tags: ['user', 'create'],
         body: userCreateEmailSchema,
         response: {
           200: userResponseSchema,
@@ -135,7 +136,7 @@ export default asRoute(async function userRoute(app) {
       url: '/session',
       schema: {
         description: 'Get current session',
-        tags: ['user', 'info'],
+        tags: ['user', 'read'],
         response: {
           200: userResponseSchema,
           default: errorResponseSchema,
@@ -152,7 +153,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'GET',
-      url: '/email/verify/:id',
+      url: '/email/:id/verify',
       config: {
         rateLimit: {
           max: 1,
@@ -161,7 +162,7 @@ export default asRoute(async function userRoute(app) {
       },
       schema: {
         description: 'Send email verification otp',
-        tags: ['user', 'email'],
+        tags: ['user', 'read'],
         params: userSendEmailVerificationSchema,
         response: {
           200: userResponseSchema,
@@ -182,7 +183,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'GET',
-      url: '/email/verify/:email/:otp',
+      url: '/email/:email/:otp/verify',
       config: {
         rateLimit: {
           max: 1,
@@ -191,7 +192,7 @@ export default asRoute(async function userRoute(app) {
       },
       schema: {
         description: 'Verify email',
-        tags: ['user', 'email', 'update'],
+        tags: ['user', 'read'],
         params: userVerifyEmailSchema,
         response: {
           200: userResponseSchema,
@@ -211,7 +212,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update/password',
+      url: '/password/update',
       config: {
         rateLimit: {
           max: 5,
@@ -245,7 +246,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update/information',
+      url: '/information/update',
       config: {
         rateLimit: {
           max: 5,
@@ -278,7 +279,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/email/update/primary',
+      url: '/email/primary/set',
       config: {
         rateLimit: {
           max: 5,
@@ -287,7 +288,7 @@ export default asRoute(async function userRoute(app) {
       },
       schema: {
         description: "Set user's primary email",
-        tags: ['user', 'email', 'update'],
+        tags: ['user', 'update'],
         body: userEmailUpdatePrimarySchema,
         response: {
           200: userResponseSchema,
@@ -311,7 +312,7 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/enable/toggle',
+      url: '/toggle',
       config: {
         rateLimit: {
           max: 5,
@@ -320,7 +321,7 @@ export default asRoute(async function userRoute(app) {
       },
       schema: {
         description: 'Enable/ disable user',
-        tags: ['user', 'admin', 'update'],
+        tags: ['user', 'update'],
         body: userEnableToggleSchema,
         response: {
           200: userResponseSchema,
@@ -346,10 +347,10 @@ export default asRoute(async function userRoute(app) {
 
     .route({
       method: 'DELETE',
-      url: '/email/delete/:id',
+      url: '/email/:id/delete',
       schema: {
         description: 'Delete user email',
-        tags: ['user', 'email', 'delete'],
+        tags: ['user', 'delete'],
         params: userDeleteEmailSchema,
         response: {
           200: userResponseSchema,

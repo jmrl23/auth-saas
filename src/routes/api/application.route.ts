@@ -22,7 +22,7 @@ export default asRoute(async function apiAppRoute(app) {
       url: '/create',
       schema: {
         description: 'Create application',
-        tags: ['api', 'application', 'create'],
+        tags: ['api', 'create'],
         body: applicationCreateSchema,
         response: {
           200: applicationResponseSchema,
@@ -50,7 +50,7 @@ export default asRoute(async function apiAppRoute(app) {
       url: '/list',
       schema: {
         description: 'Get application list',
-        tags: ['api', 'application', 'list', 'info'],
+        tags: ['api', 'read'],
         querystring: applicationGetListSchema,
         response: {
           200: applicationListResponseSchema,
@@ -71,10 +71,10 @@ export default asRoute(async function apiAppRoute(app) {
 
     .route({
       method: 'PATCH',
-      url: '/update/origins',
+      url: '/origins/set',
       schema: {
         description: 'Update application origins',
-        tags: ['api', 'application', 'update'],
+        tags: ['api', 'update'],
         body: applicationUpdateOrigins,
         response: {
           200: applicationResponseSchema,
@@ -98,10 +98,10 @@ export default asRoute(async function apiAppRoute(app) {
 
     .route({
       method: 'DELETE',
-      url: '/delete/:id',
+      url: '/:id/delete',
       schema: {
         description: 'Delete application',
-        tags: ['api', 'application', 'delete'],
+        tags: ['api', 'delete'],
         params: applicationDeleteSchema,
         response: {
           200: applicationResponseSchema,
