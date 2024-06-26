@@ -174,19 +174,6 @@ export const keyDeleteSchema = asJsonSchema({
   },
 } as const);
 
-export const keyStatusSchema = asJsonSchema({
-  type: 'object',
-  description: 'Get key status',
-  additionalProperties: false,
-  required: [],
-  properties: {
-    key: {
-      type: 'string',
-      minLength: 32,
-    },
-  },
-} as const);
-
 export const keyResponseSchema = asJsonSchema({
   type: 'object',
   description: 'Key response',
@@ -206,30 +193,6 @@ export const keyListResponseSchema = asJsonSchema({
     keys: {
       type: 'array',
       items: keySchema,
-    },
-  },
-} as const);
-
-export const keyStatusResponseSchema = asJsonSchema({
-  type: 'object',
-  description: 'Get key status',
-  additionalProperties: false,
-  required: ['status'],
-  properties: {
-    status: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['active'],
-      properties: {
-        active: {
-          type: 'boolean',
-          examples: [false],
-        },
-        message: {
-          type: 'string',
-          examples: ['API key expired'],
-        },
-      },
     },
   },
 } as const);

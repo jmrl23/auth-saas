@@ -18,7 +18,7 @@ export declare global {
     salt?: string;
   }
 
-  export interface ApiApplication
+  export interface ApiApp
     extends Prisma.ApiApplicationGetPayload<{
       select: {
         id: true;
@@ -47,5 +47,20 @@ export declare global {
       name: string;
       origins: string[];
     }>;
+  }
+
+  interface OptionsWithRevalidate {
+    revalidate?: boolean;
+  }
+
+  interface ApiListPayload {
+    revalidate?: boolean;
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    updatedAtFrom?: string;
+    updatedAtTo?: string;
+    skip?: number;
+    take?: number;
+    order?: 'asc' | 'desc';
   }
 }

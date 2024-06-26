@@ -4,6 +4,8 @@ import fastifyPlugin from 'fastify-plugin';
 import { REDIS_URL } from '../lib/constant/environment';
 import smtpTransport from '../lib/smtpTransport';
 import ApiService from '../services/api.service';
+import AppService from '../services/api/app.service';
+import KeyService from '../services/api/key.service';
 import CacheService from '../services/cache.service';
 import EmailService from '../services/email.service';
 import UserService from '../services/user.service';
@@ -51,7 +53,9 @@ export default fastifyPlugin(
       });
       const cache = await caching(cacheStore);
       const cacheService = new CacheService(cache);
-      const apiService = new ApiService(cacheService);
+      const appService = new AppService(cacheService);
+      const keyService = new KeyService(cacheService, appService);
+      const apiService = new ApiService(appService, keyService);
       return apiService;
     }
   },

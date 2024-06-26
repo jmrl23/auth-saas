@@ -7,8 +7,6 @@ import {
   keyListResponseSchema,
   keyListSchema,
   keyResponseSchema,
-  keyStatusResponseSchema,
-  keyStatusSchema,
   keyToggleSchema,
 } from '../../schemas/api/key.schema';
 import { errorResponseSchema } from '../../schemas/error.schema';
@@ -32,7 +30,7 @@ export default asRoute(async function apiKeyRoute(app) {
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const payload = request.body as FromSchema<typeof keyCreateSchema>;
-        const key = await this.apiService.createKey(request.user!, payload);
+        const key = await this.apiService.key.createKey(request.user!, payload);
         return {
           key,
         };
@@ -54,31 +52,12 @@ export default asRoute(async function apiKeyRoute(app) {
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const payload = request.query as FromSchema<typeof keyListSchema>;
-        const keys = await this.apiService.getKeyList(request.user!, payload);
+        const keys = await this.apiService.key.getKeyList(
+          request.user!,
+          payload,
+        );
         return {
           keys,
-        };
-      },
-    })
-
-    .route({
-      method: 'GET',
-      url: '',
-      schema: {
-        description: 'Get key status',
-        tags: ['api', 'read'],
-        querystring: keyStatusSchema,
-        response: {
-          200: keyStatusResponseSchema,
-          default: errorResponseSchema,
-        },
-      },
-      async handler(request) {
-        const { key } = request.query as FromSchema<typeof keyStatusSchema>;
-        const origin = request.headers.origin;
-        const status = await this.apiService.getKeyStatus(origin, key);
-        return {
-          status,
         };
       },
     })
@@ -100,7 +79,7 @@ export default asRoute(async function apiKeyRoute(app) {
         const { id, enable } = request.body as FromSchema<
           typeof keyToggleSchema
         >;
-        const key = await this.apiService.toggleKeyById(
+        const key = await this.apiService.key.toggleKeyById(
           request.user!,
           id,
           enable,
@@ -126,7 +105,7 @@ export default asRoute(async function apiKeyRoute(app) {
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
         const { id } = request.body as FromSchema<typeof keyDeleteSchema>;
-        const key = await this.apiService.deleteKeyById(request.user!, id);
+        const key = await this.apiService.key.deleteKeyById(request.user!, id);
         return {
           key,
         };

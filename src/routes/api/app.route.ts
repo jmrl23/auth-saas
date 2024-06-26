@@ -3,16 +3,16 @@ import type { FromSchema } from 'json-schema-to-ts';
 import userAuthorization from '../../handlers/user-authorization';
 import { asRoute } from '../../lib/util/typings';
 import {
-  applicationCreateSchema,
-  applicationDeleteSchema,
-  applicationGetListSchema,
-  applicationListResponseSchema,
-  applicationResponseSchema,
-  applicationUpdateOrigins,
-} from '../../schemas/api/application.schema';
+  appCreateSchema,
+  appDeleteSchema,
+  appGetListSchema,
+  appListResponseSchema,
+  appResponseSchema,
+  appSetOriginsSchema,
+} from '../../schemas/api/app.schema';
 import { errorResponseSchema } from '../../schemas/error.schema';
 
-export const prefix = '/api/application';
+export const prefix = '/api/app';
 
 export default asRoute(async function apiAppRoute(app) {
   app
@@ -21,20 +21,20 @@ export default asRoute(async function apiAppRoute(app) {
       method: 'POST',
       url: '/create',
       schema: {
-        description: 'Create application',
+        description: appCreateSchema.description,
         tags: ['api', 'create'],
-        body: applicationCreateSchema,
+        body: appCreateSchema,
         response: {
-          200: applicationResponseSchema,
+          200: appResponseSchema,
           default: errorResponseSchema,
         },
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
       async handler(request) {
         const { name, origins } = request.body as FromSchema<
-          typeof applicationCreateSchema
+          typeof appCreateSchema
         >;
-        const application = await this.apiService.createApp(
+        const application = await this.apiService.app.createApp(
           request.user!,
           name,
           origins,
@@ -49,20 +49,18 @@ export default asRoute(async function apiAppRoute(app) {
       method: 'GET',
       url: '/list',
       schema: {
-        description: 'Get application list',
+        description: appGetListSchema.description,
         tags: ['api', 'read'],
-        querystring: applicationGetListSchema,
+        querystring: appGetListSchema,
         response: {
-          200: applicationListResponseSchema,
+          200: appListResponseSchema,
           default: errorResponseSchema,
         },
       },
       preHandler: [userAuthorization('ALL')],
       async handler(request) {
-        const payload = request.query as FromSchema<
-          typeof applicationGetListSchema
-        >;
-        const applications = await this.apiService.getAppList(payload);
+        const payload = request.query as FromSchema<typeof appGetListSchema>;
+        const applications = await this.apiService.app.getAppList(payload);
         return {
           applications,
         };
@@ -73,20 +71,20 @@ export default asRoute(async function apiAppRoute(app) {
       method: 'PATCH',
       url: '/origins/set',
       schema: {
-        description: 'Update application origins',
+        description: appSetOriginsSchema.description,
         tags: ['api', 'update'],
-        body: applicationUpdateOrigins,
+        body: appSetOriginsSchema,
         response: {
-          200: applicationResponseSchema,
+          200: appResponseSchema,
           default: errorResponseSchema,
         },
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
       async handler(request) {
         const { id, origins } = request.body as FromSchema<
-          typeof applicationUpdateOrigins
+          typeof appSetOriginsSchema
         >;
-        const application = await this.apiService.updateAppOriginsById(
+        const application = await this.apiService.app.setAppOriginsById(
           id,
           origins,
         );
@@ -100,20 +98,18 @@ export default asRoute(async function apiAppRoute(app) {
       method: 'DELETE',
       url: '/:id/delete',
       schema: {
-        description: 'Delete application',
+        description: appDeleteSchema.description,
         tags: ['api', 'delete'],
-        params: applicationDeleteSchema,
+        params: appDeleteSchema,
         response: {
-          200: applicationResponseSchema,
+          200: appResponseSchema,
           default: errorResponseSchema,
         },
       },
       preHandler: [userAuthorization(UserRole.ADMIN)],
       async handler(request) {
-        const { id } = request.params as FromSchema<
-          typeof applicationDeleteSchema
-        >;
-        const application = await this.apiService.deleteAppById(id);
+        const { id } = request.params as FromSchema<typeof appDeleteSchema>;
+        const application = await this.apiService.app.deleteAppById(id);
         return {
           application,
         };

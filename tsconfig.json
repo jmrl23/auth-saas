@@ -13,7 +13,12 @@
     "skipLibCheck": true,
     "strictPropertyInitialization": false
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.json"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.json",
+    "src/services/api.service.ts.bak"
+  ],
   "ts-node": {
     "swc": true
   }

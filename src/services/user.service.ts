@@ -84,7 +84,7 @@ export default class UserService {
 
     const cachedUser = await this.cacheService.get<User>(cacheKey);
 
-    if (cachedUser) {
+    if (cachedUser || cachedUser === null) {
       const user = { ...cachedUser };
 
       if (!options.includePassword) {

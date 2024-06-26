@@ -1,4 +1,4 @@
-import type ApiService from '../services/api.service';
+import type ApiService from '../services/api.service.ts';
 import type CacheService from '../services/cache.service';
 import type UserService from '../services/user.service';
 

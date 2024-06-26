@@ -8,15 +8,15 @@ export const errorResponseSchema = asJsonSchema({
   properties: {
     statusCode: {
       type: 'number',
-      examples: [404],
+      examples: [500],
     },
     error: {
       type: 'string',
-      examples: ['Not found'],
+      examples: ['Internal Server Error'],
     },
     message: {
       type: 'string',
-      examples: ['Something not found'],
+      examples: ['An error occurs'],
     },
   },
 } as const);

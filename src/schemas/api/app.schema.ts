@@ -1,6 +1,6 @@
 import { asJsonSchema } from '../../lib/util/typings';
 
-export const applicationSchema = asJsonSchema({
+export const appSchema = asJsonSchema({
   type: 'object',
   description: 'Application',
   additionalProperties: false,
@@ -37,7 +37,7 @@ export const applicationSchema = asJsonSchema({
   },
 } as const);
 
-export const applicationCreateSchema = asJsonSchema({
+export const appCreateSchema = asJsonSchema({
   type: 'object',
   description: 'Create application',
   additionalProperties: false,
@@ -59,7 +59,7 @@ export const applicationCreateSchema = asJsonSchema({
   },
 } as const);
 
-export const applicationGetListSchema = asJsonSchema({
+export const appGetListSchema = asJsonSchema({
   type: 'object',
   description: 'Get application list',
   additionalProperties: false,
@@ -112,9 +112,9 @@ export const applicationGetListSchema = asJsonSchema({
   },
 } as const);
 
-export const applicationUpdateOrigins = asJsonSchema({
+export const appSetOriginsSchema = asJsonSchema({
   type: 'object',
-  description: 'Update application origins',
+  description: 'Set application origins',
   additionalProperties: false,
   required: ['id', 'origins'],
   properties: {
@@ -132,7 +132,7 @@ export const applicationUpdateOrigins = asJsonSchema({
   },
 } as const);
 
-export const applicationDeleteSchema = asJsonSchema({
+export const appDeleteSchema = asJsonSchema({
   type: 'object',
   description: 'Delete application',
   additionalProperties: false,
@@ -145,17 +145,17 @@ export const applicationDeleteSchema = asJsonSchema({
   },
 } as const);
 
-export const applicationResponseSchema = asJsonSchema({
+export const appResponseSchema = asJsonSchema({
   type: 'object',
   description: 'Application response',
   additionalProperties: false,
   required: ['application'],
   properties: {
-    application: { ...applicationSchema, nullable: true },
+    application: { ...appSchema, nullable: true },
   },
 } as const);
 
-export const applicationListResponseSchema = asJsonSchema({
+export const appListResponseSchema = asJsonSchema({
   type: 'object',
   description: 'Application list response',
   additionalProperties: false,
@@ -163,7 +163,7 @@ export const applicationListResponseSchema = asJsonSchema({
   properties: {
     applications: {
       type: 'array',
-      items: applicationSchema,
+      items: appSchema,
     },
   },
 } as const);
