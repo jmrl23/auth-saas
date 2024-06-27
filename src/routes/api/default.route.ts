@@ -1,9 +1,7 @@
 import type { FromSchema } from 'json-schema-to-ts';
-import { asRoute } from '../lib/util/typings';
-import { apiAuthSchema } from '../schemas/api.schema';
-import { errorSchema } from '../schemas/response.schema';
-
-export const prefix = '/api';
+import { asRoute } from '../../lib/util/typings';
+import { apiAuthSchema } from '../../schemas/api.schema';
+import { errorSchema } from '../../schemas/response.schema';
 
 export default asRoute(async function apiRoute(app) {
   app.route({
@@ -11,7 +9,7 @@ export default asRoute(async function apiRoute(app) {
     url: '',
     schema: {
       description: apiAuthSchema.description,
-      tags: ['api.default', 'read'],
+      tags: ['default.api', 'read'],
       querystring: apiAuthSchema,
       responses: {
         default: errorSchema,

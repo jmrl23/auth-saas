@@ -2,22 +2,20 @@ import { UserRole } from '@prisma/client';
 import { Forbidden } from 'http-errors';
 import type { FromSchema } from 'json-schema-to-ts';
 import ms from 'ms';
-import userAuthorization from '../handlers/user-authorization';
-import { asRoute } from '../lib/util/typings';
+import userAuthorization from '../../handlers/user-authorization';
+import { asRoute } from '../../lib/util/typings';
 import {
   errorSchema,
   userSchema,
   userTokenSchema,
-} from '../schemas/response.schema';
+} from '../../schemas/response.schema';
 import {
   userLoginSchema,
   userRegisterSchema,
   userToggleSchema,
   userPasswordUpdateSchema,
-} from '../schemas/user.schema';
-import forbidMaster from '../handlers/forbid-master';
-
-export const prefix = '/user';
+} from '../../schemas/user.schema';
+import forbidMaster from '../../handlers/forbid-master';
 
 export default asRoute(async function userRoute(app) {
   app
@@ -28,7 +26,7 @@ export default asRoute(async function userRoute(app) {
       schema: {
         description: 'Register user',
         security: [],
-        tags: ['user.default', 'create'],
+        tags: ['default.user', 'create'],
         body: userRegisterSchema,
         response: {
           200: userSchema,
@@ -68,7 +66,7 @@ export default asRoute(async function userRoute(app) {
       schema: {
         description: 'Login user',
         security: [],
-        tags: ['user.default', 'create'],
+        tags: ['default.user', 'create'],
         body: userLoginSchema,
         response: {
           200: userTokenSchema,
@@ -100,7 +98,7 @@ export default asRoute(async function userRoute(app) {
       url: '/session',
       schema: {
         description: 'Get current session',
-        tags: ['user.default', 'read'],
+        tags: ['default.user', 'read'],
         response: {
           200: userSchema,
           default: errorSchema,
@@ -127,7 +125,7 @@ export default asRoute(async function userRoute(app) {
       preHandler: [forbidMaster, userAuthorization('ALL')],
       schema: {
         description: 'Update user password',
-        tags: ['user.default', 'update'],
+        tags: ['default.user', 'update'],
         body: userPasswordUpdateSchema,
         response: {
           200: userSchema,
@@ -158,7 +156,7 @@ export default asRoute(async function userRoute(app) {
       },
       schema: {
         description: 'Enable/ disable user',
-        tags: ['user.default', 'update'],
+        tags: ['default.user', 'update'],
         body: userToggleSchema,
         response: {
           200: userSchema,
@@ -186,7 +184,7 @@ export default asRoute(async function userRoute(app) {
       preHandler: [userAuthorization('ALL')],
       schema: {
         description: 'Logout',
-        tags: ['user.default', 'delete'],
+        tags: ['default.user', 'delete'],
         response: {
           200: userSchema,
           default: errorSchema,
